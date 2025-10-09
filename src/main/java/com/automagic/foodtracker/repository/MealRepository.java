@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Optional;
 
 @Repository
 public interface MealRepository extends MongoRepository<Meal, String> {
