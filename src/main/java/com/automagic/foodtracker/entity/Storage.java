@@ -23,4 +23,22 @@ public class Storage {
     private double lowStockThreshold;
     private Instant createdAt;
     private Instant updatedAt;
+
+    //Helper Methods
+    public double getRemainingWeight() {
+        return totalWeight - consumedWeight;
+    }
+
+    public double getMealsLeft() {
+        return getRemainingWeight() / weightPerMeal;
+    }
+
+    public boolean isLowStock() {
+        return getRemainingWeight() < lowStockThreshold;
+    }
+
+    public double getProgressPercentage() {
+        return (consumedWeight / totalWeight) * 100;
+    }
+
 }

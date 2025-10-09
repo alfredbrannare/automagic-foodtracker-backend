@@ -14,7 +14,7 @@ import java.util.Objects;
 public class Meal {
     @Id
     private String id;
-    private String useId;
+    private String userId;
     private String storageId;
     private String name;
     private double weight;
