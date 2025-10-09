@@ -1,16 +1,26 @@
 package com.automagic.foodtracker.entity;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-public record Storage(
-        String id,
-        String userId,
-        String name,
-        double totalWeight,
-        double consumedWeight,
-        double weightPerMeal,
-        Nutrition nutritionPer100g,
-        double lowStockThreshold,
-        Instant createdAt,
-        Instant updatedAt
-) {}
+import java.time.Instant;
+import java.util.Objects;
+
+@Data
+@NoArgsConstructor
+@Document(collection = "storage")
+public class Storage {
+    @Id
+    private String id;
+    private String userId;
+    private String name;
+    private double totalWeight;
+    private double consumedWeight;
+    private double weightPerMeal;
+    private Nutrition nutritionPer100g;
+    private double lowStockThreshold;
+    private Instant createdAt;
+    private Instant updatedAt;
+}

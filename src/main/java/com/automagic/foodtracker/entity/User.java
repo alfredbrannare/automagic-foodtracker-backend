@@ -1,11 +1,21 @@
 package com.automagic.foodtracker.entity;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-public record User(
-        String id,
-        String username,
-        String email,
-        Instant createdAt,
-        Goals goals
-) {}
+import java.time.Instant;
+import java.util.Objects;
+
+@Data
+@NoArgsConstructor
+@Document(collection = "users")
+public class User {
+    @Id
+    private String id;
+    private String username;
+    private String email;
+    private Instant createdAt;
+    private Goals goals;
+}
