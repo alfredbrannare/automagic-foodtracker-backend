@@ -17,13 +17,15 @@ public class MealService {
     private final MealRepository mealRepository;
     private final StorageService storageService;
 
-    public Collection<Nutrition> calculateDailyNutrition (String userId, Instant from, Instant to) {
-                 return mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to)
-                         .stream()
-                         .map(meal -> meal.getStorageId() != null
-                         ? storageService.getNutrition(userId, meal.getStorageId()).scale(meal.getWeight())
-                         : meal.getNutrition().scale(meal.getWeight()))
-                         .toList();
+    public Nutrition calculateDailyNutrition(String userId, Instant from, Instant to) {
+        Collection<Meal> meals = mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
+
+        double totalProtein = meals.stream().mapToDouble(m -> m.getNutrition().protein()).sum();
+        double totalCarbs = meals.stream().mapToDouble(m -> m.getNutrition().carbs()).sum();
+        double totalFat = meals.stream().mapToDouble(m -> m.getNutrition().fat()).sum();
+        double totalKcal = meals.stream().mapToDouble(m -> m.getNutrition().kcal()).sum();
+
+        return new Nutrition(totalProtein, totalCarbs, totalFat, totalKcal);
     }
 
 }
