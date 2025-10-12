@@ -1,6 +1,5 @@
-package com.automagic.foodtracker.repository;
+package com.automagic.foodtracker.repository.user;
 
-import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.entity.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
