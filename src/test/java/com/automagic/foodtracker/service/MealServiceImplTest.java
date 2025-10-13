@@ -10,6 +10,7 @@ import com.automagic.foodtracker.service.meal.MealServiceImpl;
 import com.automagic.foodtracker.service.storage.StorageService;
 import com.automagic.foodtracker.service.storage.StorageServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -21,6 +22,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,17 +54,29 @@ public class MealServiceImplTest {
         storageRepository.deleteAll();
     }
 
+    //Helper Methods
+    private Meal createTestMeal(String userId, String name, double weight, Nutrition nutrition, Instant consumedAt) {
+        Meal meal = new Meal();
+        meal.setUserId(userId);
+        meal.setName(name);
+        meal.setWeight(weight);
+        meal.setNutrition(nutrition);
+        meal.setConsumedAt(consumedAt);
+        return meal;
+    }
+
+    // Tests
     @Test
+    @DisplayName("Check if the meal gets saved to the database")
     void testRegisterMealSavesMealCorrectly() {
         final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
-
-        Meal newMeal = new Meal();
-
-        newMeal.setUserId("user123");
-        newMeal.setName("Chicken");
-        newMeal.setWeight(200.0);
-        newMeal.setNutrition(new Nutrition(10.0, 20.0, 5.0, 150.0));
-        newMeal.setConsumedAt(fixedTime);
+        Meal newMeal = createTestMeal(
+                "user123",
+                "Chicken",
+                200.0,
+                new Nutrition(10.0, 20.0, 5.0, 150.0),
+                fixedTime
+        );
 
         Meal registeredMeal = mealService.registerMeal(newMeal);
 
@@ -78,6 +92,54 @@ public class MealServiceImplTest {
         assertThat(mealFromDb.get().getWeight()).isEqualTo(200.0);
         assertThat(mealFromDb.get().getNutrition().protein()).isEqualTo(10.0);
         assertThat(mealFromDb.get().getConsumedAt()).isEqualTo(fixedTime);
+    }
+
+    @Test
+    @DisplayName("Should successfully retrieve a meal when given a valid ID")
+    void testGetMealByUserIdRetrivesOnlyCorrectUserMeals() {
+        final Instant fixedTime1 = Instant.parse("2022-01-01T00:00:00.00Z");
+        final Instant fixedTime2 = Instant.parse("2022-01-01T15:00:00.00Z");
+        final Instant consumedTime1 = Instant.parse("2022-01-01T11:00:00.00Z");
+        final Instant consumedTime2 = Instant.parse("2022-01-01T13:00:00.00Z");
+
+        Meal newMeal1 = createTestMeal(
+                "user456",
+                "Pizza",
+                150.0,
+                new Nutrition(10.0, 20.0, 5.0, 150.0),
+                consumedTime1
+        );
+
+        Meal newMeal2 = createTestMeal(
+                "user456",
+                "Hamburger",
+                150.0,
+                new Nutrition(10.0, 20.0, 5.0, 150.0),
+                consumedTime2
+        );
+
+        Meal newMeal3 = createTestMeal(
+                "user654",
+                "Not Pizza",
+                1000.0,
+                new Nutrition(100.0, 200.0, 50.0, 1500.0),
+                fixedTime2
+        );
+
+        Meal registeredMeal1 = mealService.registerMeal(newMeal1);
+        Meal registeredMeal2 = mealService.registerMeal(newMeal2);
+        Meal decoyMeal = mealService.registerMeal(newMeal3);
+
+        Collection<Meal> mealsFromDb = mealService.getAllMeals(newMeal1.getUserId(), fixedTime1, fixedTime2);
+
+        assertThat(mealsFromDb).as("Meals for specific user should only be retrieved").hasSize(2);
+        assertThat(mealsFromDb)
+                .extracting(Meal::getId)
+                .containsExactlyInAnyOrder(registeredMeal1.getId(), registeredMeal2.getId());
+
+        assertThat(mealsFromDb)
+                .extracting(Meal::getUserId)
+                .doesNotContain("user654");
     }
 
 }

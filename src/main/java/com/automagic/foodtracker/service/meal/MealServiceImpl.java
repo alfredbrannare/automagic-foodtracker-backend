@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,5 +31,10 @@ public class MealServiceImpl implements MealService {
     @Override
     public Meal registerMeal(Meal meal) {
         return mealRepository.save(meal);
+    }
+
+    @Override
+    public Collection<Meal> getAllMeals(String userId, Instant from, Instant to) {
+        return mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
     }
 }
