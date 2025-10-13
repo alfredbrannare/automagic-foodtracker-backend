@@ -1,19 +1,18 @@
-package com.automagic.foodtracker.service;
+package com.automagic.foodtracker.service.meal;
 
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
-import com.automagic.foodtracker.repository.MealRepository;
-import com.automagic.foodtracker.repository.StorageRepository;
+import com.automagic.foodtracker.repository.meal.MealRepository;
+import com.automagic.foodtracker.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class MealService {
+public class MealServiceImpl implements MealService {
     private final MealRepository mealRepository;
     private final StorageService storageService;
 
@@ -28,4 +27,8 @@ public class MealService {
         return new Nutrition(totalProtein, totalCarbs, totalFat, totalKcal);
     }
 
+    @Override
+    public Meal registerMeal(Meal meal) {
+        return mealRepository.save(meal);
+    }
 }

@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.repository;
+package com.automagic.foodtracker.repository.meal;
 
 import com.automagic.foodtracker.entity.Meal;
 import org.springframework.data.mongodb.repository.MongoRepository;
