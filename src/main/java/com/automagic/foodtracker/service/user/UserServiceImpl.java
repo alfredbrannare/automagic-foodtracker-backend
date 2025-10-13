@@ -21,6 +21,7 @@ public class UserServiceImpl implements UserService {
     user.setEmail(email);
     user.setPassword(passwordEncoder.encode(plainPassword));
     user.setGoals(new Goals(150, 250, 60, 2000));
+    user.setRole("USER");
 
     return userRepository.save(user);
     }

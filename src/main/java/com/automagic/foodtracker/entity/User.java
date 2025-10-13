@@ -19,4 +19,5 @@ public class User {
     private String email;
     private Instant createdAt;
     private Goals goals;
+    private String role;
 }
