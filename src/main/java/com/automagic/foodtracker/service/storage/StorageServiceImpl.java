@@ -1,14 +1,14 @@
-package com.automagic.foodtracker.service;
+package com.automagic.foodtracker.service.storage;
 
 import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.exception.StorageNotFoundException;
-import com.automagic.foodtracker.repository.StorageRepository;
+import com.automagic.foodtracker.repository.storage.StorageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StorageService {
+public class StorageServiceImpl implements StorageService {
     private final StorageRepository storageRepository;
 
     public Nutrition getNutrition(String storageId, String userId) {
