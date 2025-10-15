@@ -188,4 +188,16 @@ public class MealServiceImplTest {
                 )
                 .containsExactly(20.0, 40.0, 10.0, 300.0);
     }
+
+    @Test
+    @DisplayName("getDailyNutrition() should return zero nutrition values for the given day if no meals exist")
+    void getDailyNutritionReturnsZeroNutritionForDayWhenNoMealsExist() {
+        final Instant fixedTime1 = Instant.parse("2022-02-01T00:00:00.00Z");
+        final Instant fixedTime2 = Instant.parse("2022-02-01T23:59:59.00Z");
+
+        Nutrition dailyNutritionSum = mealService.getDailyNutrition("user456", fixedTime1, fixedTime2);
+
+        assertThat(dailyNutritionSum).isEqualTo(new Nutrition(0.0, 0.0, 0.0, 0.0));
+    }
+
 }
