@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +16,7 @@ public class MealServiceImpl implements MealService {
     private final MealRepository mealRepository;
     private final StorageService storageService;
 
-    public Nutrition calculateDailyNutrition(String userId, Instant from, Instant to) {
+    public Nutrition getDailyNutrition(String userId, Instant from, Instant to) {
         Collection<Meal> meals = mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
 
         double totalProtein = meals.stream().mapToDouble(m -> m.getNutrition().protein()).sum();
