@@ -8,7 +8,8 @@ import java.time.Instant;
 import java.util.Collection;
 
 public interface MealService {
-    Meal registerMeal(Meal newMeal);
+    Meal registerMeal(String userid, Meal newMeal);
     Collection<Meal> getAllMeals(String userId, Instant from, Instant to);
     Nutrition getDailyNutrition(String userId, Instant from, Instant to);
+    void deleteMeal(String userId, String mealId);
 }

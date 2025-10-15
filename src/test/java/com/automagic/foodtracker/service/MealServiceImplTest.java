@@ -2,18 +2,26 @@ package com.automagic.foodtracker.service;
 
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
+import com.automagic.foodtracker.entity.User;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
+import com.automagic.foodtracker.repository.user.UserRepository;
 import com.automagic.foodtracker.service.meal.MealService;
 import com.automagic.foodtracker.service.meal.MealServiceImpl;
 import com.automagic.foodtracker.service.storage.StorageService;
 import com.automagic.foodtracker.service.storage.StorageServiceImpl;
+import com.automagic.foodtracker.service.user.UserService;
+import com.automagic.foodtracker.service.user.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -28,22 +36,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @DataJpaTest
-@Import({ StorageServiceImpl.class, MealServiceImpl.class})
+@Import({ StorageServiceImpl.class, MealServiceImpl.class, UserServiceImpl.class})
 public class MealServiceImplTest {
+
+    // --- Test Container Setup ---
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+    }
+
     @Container
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("foodtracker")
             .withUsername("user")
             .withPassword("password");
-
-    @Autowired
-    private MealRepository mealRepository;
-    @Autowired
-    private MealService mealService;
-    @Autowired
-    private StorageRepository storageRepository;
-    @Autowired
-    private StorageService storageService;
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
@@ -52,13 +61,44 @@ public class MealServiceImplTest {
         registry.add("spring.datasource.password", postgresContainer::getPassword);
     }
 
+    // --- Service and Repository Autowiring ---
+    private User testUser;
+    private User otherTestUser;
+
+    @Autowired
+    private MealRepository mealRepository;
+    @Autowired
+    private MealService mealService;
+
+    @Autowired
+    private StorageRepository storageRepository;
+    @Autowired
+    private StorageService storageService;
+
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
+
+
+    // --- Test Lifecycle Methods ---
+
     @BeforeEach
     void cleanDb() {
         mealRepository.deleteAll();
         storageRepository.deleteAll();
+        userRepository.deleteAll();
+
+        User userToSave = createTestUser("user", "test@user.com", "userpassword");
+        this.testUser = userRepository.save(userToSave);
+
+        User otherUserToSave = createTestUser("otherTestUser", "otherTest@user.com", "testpassword");
+        this.otherTestUser = userRepository.save(otherUserToSave);
     }
 
-    //Helper Methods
+
+    // --- Helper Methods ---
+
     private Meal createTestMeal(String userId, String name, double weight, Nutrition nutrition, Instant consumedAt) {
         Meal meal = new Meal();
         meal.setUserId(userId);
@@ -69,34 +109,40 @@ public class MealServiceImplTest {
         return meal;
     }
 
-    // Tests
+    private User createTestUser(String username, String email, String password) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+        return user;
+    }
+
+
+    // --- Tests ---
+
     @Test
-    @DisplayName("registerMeal() should save meal to the database")
+    @DisplayName("registerMeal() should save meal to the database with the correct userId")
     void registerMealSavesMealCorrectly() {
         final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
-        Meal newMeal = createTestMeal(
-                "user123",
-                "Chicken",
-                200.0,
-                new Nutrition(10.0, 20.0, 5.0, 150.0),
-                fixedTime
-        );
 
-        Meal registeredMeal = mealService.registerMeal(newMeal);
+        Meal newMeal = createTestMeal(null, "Chicken", 200.0, new Nutrition(10.0, 20.0, 5.0, 150.0), fixedTime);
+        Meal registeredMeal = mealService.registerMeal(this.testUser.getId(), newMeal);
 
         assertThat(registeredMeal).isNotNull();
         assertThat(registeredMeal.getId()).as("ID should be generated by UUID").isNotBlank();
         assertThat(registeredMeal.getConsumedAt()).isEqualTo(fixedTime);
+        assertThat(registeredMeal.getUserId()).isEqualTo(this.testUser.getId());
 
         Optional<Meal> mealFromDb = mealRepository.findById(registeredMeal.getId());
 
-        assertThat(mealFromDb).as("Meal should be retrievable from database").isPresent();
-        assertThat(mealFromDb.get().getUserId()).isEqualTo("user123");
+        assertThat(mealFromDb.get().getUserId()).isEqualTo(this.testUser.getId());
         assertThat(mealFromDb.get().getName()).isEqualTo("Chicken");
         assertThat(mealFromDb.get().getWeight()).isEqualTo(200.0);
-        assertThat(mealFromDb.get().getNutrition().protein()).isEqualTo(10.0);
+        assertThat(mealFromDb.get().getNutrition()).isEqualTo(new Nutrition(10.0, 20.0, 5.0, 150.0));
         assertThat(mealFromDb.get().getConsumedAt()).isEqualTo(fixedTime);
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     @Test
     @DisplayName("getAllMeals() should return all meals for specific user")
@@ -106,35 +152,15 @@ public class MealServiceImplTest {
         final Instant consumedTime1 = Instant.parse("2022-01-01T11:00:00.00Z");
         final Instant consumedTime2 = Instant.parse("2022-01-01T13:00:00.00Z");
 
-        Meal newMeal1 = createTestMeal(
-                "user456",
-                "Pizza",
-                150.0,
-                new Nutrition(10.0, 20.0, 5.0, 150.0),
-                consumedTime1
-        );
+        Meal newMeal1 = createTestMeal(this.testUser.getId(), "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime1);
+        Meal newMeal2 = createTestMeal(this.testUser.getId(), "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime2);
+        Meal decoyMeal = createTestMeal(this.otherTestUser.getId(), "Not Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime1);
 
-        Meal newMeal2 = createTestMeal(
-                "user456",
-                "Hamburger",
-                150.0,
-                new Nutrition(10.0, 20.0, 5.0, 150.0),
-                consumedTime2
-        );
+        Meal registeredMeal1 = mealService.registerMeal(this.testUser.getId(), newMeal1);
+        Meal registeredMeal2 = mealService.registerMeal(this.testUser.getId(), newMeal2);
+        Meal registeredDecoyMeal = mealService.registerMeal(this.otherTestUser.getId(), decoyMeal);
 
-        Meal newMeal3 = createTestMeal(
-                "user654",
-                "Not Pizza",
-                1000.0,
-                new Nutrition(100.0, 200.0, 50.0, 1500.0),
-                fixedTime2
-        );
-
-        Meal registeredMeal1 = mealService.registerMeal(newMeal1);
-        Meal registeredMeal2 = mealService.registerMeal(newMeal2);
-        Meal decoyMeal = mealService.registerMeal(newMeal3);
-
-        Collection<Meal> mealsFromDb = mealService.getAllMeals(newMeal1.getUserId(), fixedTime1, fixedTime2);
+        Collection<Meal> mealsFromDb = mealService.getAllMeals(this.testUser.getId(), fixedTime1, fixedTime2);
 
         assertThat(mealsFromDb).as("Meals for specific user should only be retrieved").hasSize(2);
         assertThat(mealsFromDb)
@@ -143,8 +169,10 @@ public class MealServiceImplTest {
 
         assertThat(mealsFromDb)
                 .extracting(Meal::getUserId)
-                .doesNotContain("user654");
+                .doesNotContain(this.otherTestUser.getId());
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     @Test
     @DisplayName("getAllMeals() should return an empty array if no meals exist for time period")
@@ -153,16 +181,17 @@ public class MealServiceImplTest {
         final Instant fixedTime2 = Instant.parse("2022-02-01T23:59:00.00Z");
         final Instant consumedTime = Instant.parse("2022-01-01T11:00:00.00Z");
 
-        Meal newMeal = createTestMeal("user456", "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime);
+        Meal newMeal = createTestMeal(this.testUser.getId(), "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime);
 
-        Meal registeredMeal = mealService.registerMeal(newMeal);
+        Meal registeredMeal = mealService.registerMeal(this.testUser.getId(), newMeal);
         Collection<Meal> allMealsFromDb = mealRepository.findAll();
         assertThat(allMealsFromDb).as("Meals should be present in database").isNotEmpty();
 
-        Collection<Meal> mealsFromDb = mealService.getAllMeals("user456", fixedTime1, fixedTime2);
+        Collection<Meal> mealsFromDb = mealService.getAllMeals(this.testUser.getId(), fixedTime1, fixedTime2);
         assertThat(mealsFromDb).as("Meals for specific user should only be retrieved").isEmpty();
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
 
     @Test
     @DisplayName("getDailyNutrition() should return summed nutrition values for the given day")
@@ -172,13 +201,13 @@ public class MealServiceImplTest {
         final Instant consumedTime1 = Instant.parse("2022-01-01T11:00:00.00Z");
         final Instant consumedTime2 = Instant.parse("2022-01-01T13:00:00.00Z");
 
-        Meal newMeal1 = createTestMeal("user456", "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime1);
-        Meal newMeal2 = createTestMeal("user456", "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime2);
+        Meal newMeal1 = createTestMeal(this.testUser.getId(), "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime1);
+        Meal newMeal2 = createTestMeal(this.testUser.getId(), "Pizza", 150.0, new Nutrition(10.0, 20.0, 5.0, 150.0), consumedTime2);
 
-        Meal registeredMeal1 = mealService.registerMeal(newMeal1);
-        Meal registeredMeal2 = mealService.registerMeal(newMeal2);
+        Meal registeredMeal1 = mealService.registerMeal(this.testUser.getId(), newMeal1);
+        Meal registeredMeal2 = mealService.registerMeal(this.testUser.getId(), newMeal2);
 
-        Nutrition dailyNutritionSum = mealService.getDailyNutrition("user456", fixedTime1, fixedTime2);
+        Nutrition dailyNutritionSum = mealService.getDailyNutrition(this.testUser.getId(), fixedTime1, fixedTime2);
 
         assertThat(dailyNutritionSum)
                 .extracting(Nutrition::protein,
@@ -189,15 +218,32 @@ public class MealServiceImplTest {
                 .containsExactly(20.0, 40.0, 10.0, 300.0);
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
     @Test
     @DisplayName("getDailyNutrition() should return zero nutrition values for the given day if no meals exist")
     void getDailyNutritionReturnsZeroNutritionForDayWhenNoMealsExist() {
         final Instant fixedTime1 = Instant.parse("2022-02-01T00:00:00.00Z");
         final Instant fixedTime2 = Instant.parse("2022-02-01T23:59:59.00Z");
 
-        Nutrition dailyNutritionSum = mealService.getDailyNutrition("user456", fixedTime1, fixedTime2);
+        Nutrition dailyNutritionSum = mealService.getDailyNutrition(this.testUser.getId(), fixedTime1, fixedTime2);
 
         assertThat(dailyNutritionSum).isEqualTo(new Nutrition(0.0, 0.0, 0.0, 0.0));
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("deleteMeal() should remove meal from database")
+    void removeMealRemovesMealFromDatabase() {
+        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+
+        Meal newMeal = createTestMeal(this.testUser.getId(), "Chicken", 200.0, new Nutrition(10.0, 20.0, 5.0, 150.0), fixedTime);
+
+        Meal registeredMeal = mealService.registerMeal(this.testUser.getId(), newMeal);
+        assertThat(mealRepository.findById(registeredMeal.getId())).isPresent();
+
+        mealService.deleteMeal(this.testUser.getId(), registeredMeal.getId());
+        assertThat(mealRepository.findById(registeredMeal.getId())).isEmpty();
+    }
 }

@@ -5,6 +5,7 @@ import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -28,12 +29,23 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public Meal registerMeal(Meal meal) {
+    public Meal registerMeal(String userId, Meal meal) {
+        meal.setUserId(userId);
         return mealRepository.save(meal);
     }
 
     @Override
     public Collection<Meal> getAllMeals(String userId, Instant from, Instant to) {
         return mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
+    }
+
+    @Override
+    public void deleteMeal(String userId, String mealId) {
+        mealRepository.findById(mealId).ifPresent(meal -> {
+            if (!meal.getUserId().equals(userId)) {
+                throw new AccessDeniedException("You are not allowed to delete this meal");
+            }
+            mealRepository.delete(meal);
+        });
     }
 }
