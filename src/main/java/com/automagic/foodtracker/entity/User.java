@@ -1,18 +1,24 @@
 package com.automagic.foodtracker.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.Objects;
 
+@Entity
+@Table(name = "user")
 @Data
 @NoArgsConstructor
-@Document(collection = "users")
+@AllArgsConstructor
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String username;
     private String password;

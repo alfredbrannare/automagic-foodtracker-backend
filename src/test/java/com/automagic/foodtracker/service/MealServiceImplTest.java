@@ -2,7 +2,6 @@ package com.automagic.foodtracker.service;
 
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
-import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
 import com.automagic.foodtracker.service.meal.MealService;
@@ -13,11 +12,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -28,11 +27,14 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
-@DataMongoTest
+@DataJpaTest
 @Import({ StorageServiceImpl.class, MealServiceImpl.class})
 public class MealServiceImplTest {
     @Container
-    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:6.0");
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("foodtracker")
+            .withUsername("user")
+            .withPassword("password");
 
     @Autowired
     private MealRepository mealRepository;
@@ -45,7 +47,9 @@ public class MealServiceImplTest {
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
     }
 
     @BeforeEach
@@ -96,7 +100,7 @@ public class MealServiceImplTest {
 
     @Test
     @DisplayName("Should successfully retrieve a meal when given a valid ID")
-    void testGetMealByUserIdRetrivesOnlyCorrectUserMeals() {
+    void testGetMealByUserIdRetrievesOnlyCorrectUserMeals() {
         final Instant fixedTime1 = Instant.parse("2022-01-01T00:00:00.00Z");
         final Instant fixedTime2 = Instant.parse("2022-01-01T15:00:00.00Z");
         final Instant consumedTime1 = Instant.parse("2022-01-01T11:00:00.00Z");

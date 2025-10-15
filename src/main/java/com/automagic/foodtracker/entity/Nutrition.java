@@ -1,5 +1,8 @@
 package com.automagic.foodtracker.entity;
 
+import jakarta.persistence.Embeddable;
+
+@Embeddable
 public record Nutrition(
     double protein,
     double carbs,

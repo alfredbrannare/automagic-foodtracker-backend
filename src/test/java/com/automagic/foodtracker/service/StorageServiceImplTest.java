@@ -8,21 +8,24 @@ import com.automagic.foodtracker.service.storage.StorageServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @Testcontainers
-@DataMongoTest
+@DataJpaTest
 public class StorageServiceImplTest {
     
     @Container
-    static MongoDBContainer mongoContainer = new MongoDBContainer("mongo:6.0");
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
+            .withDatabaseName("foodtracker")
+            .withUsername("user")
+            .withPassword("password");
     
     @Autowired
     private StorageRepository storageRepository;
@@ -30,7 +33,9 @@ public class StorageServiceImplTest {
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
     }
 
     @BeforeEach
