@@ -1,13 +1,11 @@
 package com.automagic.foodtracker.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.Id;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -20,14 +18,31 @@ public class Storage {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
+    @Column(nullable = false)
     private String userId;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private double totalWeight;
+
     private double consumedWeight;
+
+    @Column(nullable = false)
     private double weightPerMeal;
+
+    @Embedded
+    @Column(nullable = false)
     private Nutrition nutritionPer100g;
+
     private double lowStockThreshold;
+
+    @CreationTimestamp
     private Instant createdAt;
+
+    @UpdateTimestamp
     private Instant updatedAt;
 
     //Helper Methods
