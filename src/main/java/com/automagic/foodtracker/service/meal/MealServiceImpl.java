@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.service.meal;
 
+import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.repository.meal.MealRepository;
@@ -29,8 +30,15 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public Meal registerMeal(String userId, Meal meal) {
+    public Meal registerMeal(String userId, CreateMealRequest request) {
+        Meal meal = new Meal();
         meal.setUserId(userId);
+        meal.setName(request.getName());
+        meal.setWeight(request.getWeight());
+        meal.setNutrition(request.getNutrition());
+        meal.setConsumedAt(request.getConsumedAt() != null ? request.getConsumedAt() : Instant.now());
+        meal.setStorageId(request.getStorageId());
+
         return mealRepository.save(meal);
     }
 
