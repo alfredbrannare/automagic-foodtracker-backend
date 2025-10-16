@@ -1,17 +1,22 @@
 package com.automagic.foodtracker.controller;
 
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
-import com.automagic.foodtracker.dto.response.MealResponse;
+import com.automagic.foodtracker.dto.response.meal.MealResponse;
 import com.automagic.foodtracker.entity.Meal;
+import com.automagic.foodtracker.mapper.meal.MealMapper;
 import com.automagic.foodtracker.service.meal.MealService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/meals")
@@ -23,6 +28,7 @@ public class MealsController {
     public ResponseEntity<MealResponse> addMeal(
             @AuthenticationPrincipal String userId,
             @RequestBody CreateMealRequest request) {
+
         Meal saved = mealService.registerMeal(userId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -36,6 +42,23 @@ public class MealsController {
                         .storageName(null)
                         .build()
         );
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MealResponse>> getAllMeals(
+            @AuthenticationPrincipal String userId,
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        Instant from = targetDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant to = targetDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).minusNanos(1).toInstant();
+
+        List<MealResponse> response = mealService.getMealsForUserBetween(userId, from, to)
+                .stream()
+                .map(MealMapper::toResponse)
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

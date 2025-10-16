@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.dto.response;
+package com.automagic.foodtracker.dto.response.meal;
 
 import com.automagic.foodtracker.entity.Nutrition;
 import lombok.AllArgsConstructor;

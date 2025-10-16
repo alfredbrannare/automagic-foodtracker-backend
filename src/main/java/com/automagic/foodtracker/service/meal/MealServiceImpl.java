@@ -43,7 +43,7 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public Collection<Meal> getAllMeals(String userId, Instant from, Instant to) {
+    public Collection<Meal> getMealsForUserBetween(String userId, Instant from, Instant to) {
         return mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
     }
 

@@ -10,7 +10,7 @@ import java.util.Collection;
 
 public interface MealService {
     Meal registerMeal(String userid, CreateMealRequest request);
-    Collection<Meal> getAllMeals(String userId, Instant from, Instant to);
+    Collection<Meal> getMealsForUserBetween(String userId, Instant from, Instant to);
     Nutrition getDailyNutrition(String userId, Instant from, Instant to);
     void deleteMeal(String userId, String mealId);
 }

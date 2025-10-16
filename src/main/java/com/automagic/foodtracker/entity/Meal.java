@@ -9,7 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "meal")
+@Table(name = "meals")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

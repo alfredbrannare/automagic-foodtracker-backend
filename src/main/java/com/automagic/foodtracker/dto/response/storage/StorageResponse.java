@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.dto.response;
+package com.automagic.foodtracker.dto.response.storage;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -182,7 +182,7 @@ public class MealServiceImplTest {
         Meal registeredMeal2 = mealService.registerMeal(this.testUser.getId(), request2);
         Meal registeredDecoyMeal = mealService.registerMeal(this.otherTestUser.getId(), decoyRequest);
 
-        Collection<Meal> mealsFromDb = mealService.getAllMeals(this.testUser.getId(), fixedTime1, fixedTime2);
+        Collection<Meal> mealsFromDb = mealService.getMealsForUserBetween(this.testUser.getId(), fixedTime1, fixedTime2);
 
         assertThat(mealsFromDb).hasSize(2);
         assertThat(mealsFromDb)
@@ -214,7 +214,7 @@ public class MealServiceImplTest {
         Collection<Meal> allMealsFromDb = mealRepository.findAll();
         assertThat(allMealsFromDb).as("Meals should be present in database").isNotEmpty();
 
-        Collection<Meal> mealsFromDb = mealService.getAllMeals(this.testUser.getId(), fixedTime1, fixedTime2);
+        Collection<Meal> mealsFromDb = mealService.getMealsForUserBetween(this.testUser.getId(), fixedTime1, fixedTime2);
         assertThat(mealsFromDb).as("Meals for specific user should only be retrieved").isEmpty();
     }
 
