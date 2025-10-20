@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -45,7 +44,7 @@ public class MealsController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MealResponse>> getAllMeals(
+    public ResponseEntity<List<MealResponse>> getMeals(
             @AuthenticationPrincipal String userId,
             @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 

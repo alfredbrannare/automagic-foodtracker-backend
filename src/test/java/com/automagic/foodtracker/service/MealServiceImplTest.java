@@ -153,7 +153,7 @@ public class MealServiceImplTest {
     // -----------------------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("getAllMeals() should return all meals for specific user")
+    @DisplayName("getMealsForUserBetween() should return all meals for specific user")
     void getMealByUserIdRetrievesOnlyCorrectUserMeals() {
         final Instant fixedTime1 = Instant.parse("2022-01-01T00:00:00.00Z");
         final Instant fixedTime2 = Instant.parse("2022-01-01T15:00:00.00Z");
@@ -197,7 +197,7 @@ public class MealServiceImplTest {
     // -----------------------------------------------------------------------------------------------------------------
 
     @Test
-    @DisplayName("getAllMeals() should return an empty array if no meals exist for time period")
+    @DisplayName("getMealsForUserBetween() should return an empty array if no meals exist for time period")
     void getMealByUserIdRetrievesEmptyArrayWhenNoMealsExist() {
         final Instant fixedTime1 = Instant.parse("2022-02-01T00:00:00.00Z");
         final Instant fixedTime2 = Instant.parse("2022-02-01T23:59:00.00Z");
