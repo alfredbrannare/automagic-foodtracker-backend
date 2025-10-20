@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.controller;
+package com.automagic.foodtracker.controller.auth;
 
 import com.automagic.foodtracker.dto.request.auth.LoginRequest;
 import com.automagic.foodtracker.dto.request.auth.RegisterRequest;

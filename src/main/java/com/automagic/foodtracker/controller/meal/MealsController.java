@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.controller;
+package com.automagic.foodtracker.controller.meal;
 
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
 import com.automagic.foodtracker.dto.response.meal.MealResponse;
