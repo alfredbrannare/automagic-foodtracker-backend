@@ -3,7 +3,8 @@ package com.automagic.foodtracker.service.storage;
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
 import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.entity.Storage;
-import com.automagic.foodtracker.exception.StorageNotFoundException;
+import com.automagic.foodtracker.exception.storage.BadStorageRequestException;
+import com.automagic.foodtracker.exception.storage.StorageNotFoundException;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,14 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public Storage registerStorage(String userId, CreateStorageRequest request) {
+        if (request.getLowStockThreshold() > request.getTotalWeight()) {
+            throw new BadStorageRequestException("Low stock threshold cannot be greater than total weight");
+        }
+
+        if (request.getWeightPerMeal() > request.getTotalWeight()) {
+            throw new BadStorageRequestException("Weight per meal cannot be greater than total weight");
+        }
+
         Storage storage = new Storage();
         storage.setUserId(userId);
         storage.setName(request.getName());

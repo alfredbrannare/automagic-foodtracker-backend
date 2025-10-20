@@ -1,4 +1,4 @@
-package com.automagic.foodtracker.exception;
+package com.automagic.foodtracker.exception.storage;
 
 public class StorageNotFoundException extends RuntimeException {
     public StorageNotFoundException(String message) {

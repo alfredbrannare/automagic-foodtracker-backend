@@ -1,15 +1,12 @@
 package com.automagic.foodtracker.service;
 
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
-import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.entity.User;
-import com.automagic.foodtracker.repository.meal.MealRepository;
+import com.automagic.foodtracker.exception.storage.BadStorageRequestException;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
 import com.automagic.foodtracker.repository.user.UserRepository;
-import com.automagic.foodtracker.service.meal.MealService;
-import com.automagic.foodtracker.service.meal.MealServiceImpl;
 import com.automagic.foodtracker.service.storage.StorageService;
 import com.automagic.foodtracker.service.storage.StorageServiceImpl;
 import com.automagic.foodtracker.service.user.UserService;
@@ -17,6 +14,9 @@ import com.automagic.foodtracker.service.user.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -32,8 +32,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 @Testcontainers
@@ -130,6 +132,32 @@ public class StorageServiceImplTest {
         assertThat(storageFromDb.get().getNutritionPer100g()).isEqualTo(new Nutrition(10.0, 20.0, 5.0, 150.0));
         assertThat(storageFromDb.get().getTotalWeight()).isEqualTo(2000.0);
         assertThat(storageFromDb.get().getCreatedAt()).isEqualTo(fixedTime);
+    }
+
+    @ParameterizedTest(name = "{index} => totalWeight={0}, lowStock={1}, weightPerMeal={2}, expectedMessage={3}")
+    @MethodSource("invalidStorageProvider")
+    @DisplayName("registerStorage() should throw BadStorageRequestException when given invalid inputs")
+    void registerStorageThrowsWhenGivenInvalidInputs(double totalWeight, double lowStock, double weightPerMeal, String expectedMessage) {
+        CreateStorageRequest badRequest = CreateStorageRequest.builder()
+                .name("Chicken")
+                .nutritionPer100g(new Nutrition(1.0, 1.0, 1.0, 1.0))
+                .totalWeight(totalWeight)
+                .lowStockThreshold(lowStock)
+                .weightPerMeal(weightPerMeal)
+                .createdAt(null)
+                .build();
+
+
+        assertThatThrownBy(() -> storageService.registerStorage(testUser.getId(), badRequest))
+                .isInstanceOf(BadStorageRequestException.class)
+                .hasMessageContaining(expectedMessage);
+    }
+
+    private static Stream<Arguments> invalidStorageProvider() {
+        return Stream.of(
+                Arguments.of(100.0, 200.0, 10.0, "Low stock threshold cannot be greater than total weight"),
+                Arguments.of(100.0, 50.0, 200.0, "Weight per meal cannot be greater than total weight")
+        );
     }
 
 
