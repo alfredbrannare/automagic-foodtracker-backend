@@ -1,35 +1,60 @@
 package com.automagic.foodtracker.service;
 
+import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
+import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.entity.Storage;
+import com.automagic.foodtracker.entity.User;
+import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
+import com.automagic.foodtracker.repository.user.UserRepository;
+import com.automagic.foodtracker.service.meal.MealService;
+import com.automagic.foodtracker.service.meal.MealServiceImpl;
 import com.automagic.foodtracker.service.storage.StorageService;
 import com.automagic.foodtracker.service.storage.StorageServiceImpl;
+import com.automagic.foodtracker.service.user.UserService;
+import com.automagic.foodtracker.service.user.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Instant;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @Testcontainers
 @DataJpaTest
+@Import({StorageServiceImpl.class, UserServiceImpl.class})
 public class StorageServiceImplTest {
-    
+
+    // --- Test Container Setup ---
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+    }
+
     @Container
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("foodtracker")
             .withUsername("user")
             .withPassword("password");
-    
-    @Autowired
-    private StorageRepository storageRepository;
-    private StorageService storageService;
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
@@ -38,27 +63,74 @@ public class StorageServiceImplTest {
         registry.add("spring.datasource.password", postgresContainer::getPassword);
     }
 
+    // --- Service and Repository Autowiring ---
+    private User testUser;
+    private User otherTestUser;
+
+    @Autowired
+    private StorageRepository storageRepository;
+    @Autowired
+    private StorageService storageService;
+
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
+
+    // --- Test Lifecycle Methods ---
+
     @BeforeEach
-    void setUp() {
+    void cleanDb() {
         storageRepository.deleteAll();
-        storageService = new StorageServiceImpl(storageRepository);
+        userRepository.deleteAll();
+
+        User userToSave = createTestUser("user", "test@user.com", "userpassword");
+        this.testUser = userRepository.save(userToSave);
+
+        User otherUserToSave = createTestUser("otherTestUser", "otherTest@user.com", "testpassword");
+        this.otherTestUser = userRepository.save(otherUserToSave);
     }
+
+    // --- Helper Methods ---
+
+    private User createTestUser(String username, String email, String password) {
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+        return user;
+    }
+
+    // --- Tests ---
 
     @Test
-    void testGetNutritionReturnsCorrectValue() {
-        Storage storage = new Storage();
+    @DisplayName("registerStorage() should save a storage item to the database with the correct userId")
+    void registerStorageSavesStorageCorrectly() {
+        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
 
-        Nutrition nutrition = new Nutrition(10, 20, 5, 150);
-        storage.setUserId("user123");
-        storage.setNutritionPer100g(nutrition);
+        CreateStorageRequest request = CreateStorageRequest.builder()
+                .name("Chicken")
+                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+                .totalWeight(2000.0)
+                .weightPerMeal(150.0)
+                .lowStockThreshold(450.0)
+                .createdAt(fixedTime)
+                .build();
 
-        storageRepository.save(storage);
+        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
 
-        Nutrition result = storageService.getNutrition(storage.getId(), "user123");
-        assertThat(result.protein()).isEqualTo(10);
-        assertThat(result.carbs()).isEqualTo(20);
-        assertThat(result.fat()).isEqualTo(5);
-        assertThat(result.kcal()).isEqualTo(150);
+        assertThat(registeredStorage).isNotNull();
+        assertThat(registeredStorage.getId()).as("ID should be generated by UUID").isNotBlank();
+        assertThat(registeredStorage.getUserId()).isEqualTo(this.testUser.getId());
+
+        Optional<Storage> storageFromDb = storageRepository.findById(registeredStorage.getId());
+
+        assertThat(storageFromDb.get().getUserId()).isEqualTo(this.testUser.getId());
+        assertThat(storageFromDb.get().getName()).isEqualTo("Chicken");
+        assertThat(storageFromDb.get().getNutritionPer100g()).isEqualTo(new Nutrition(10.0, 20.0, 5.0, 150.0));
+        assertThat(storageFromDb.get().getTotalWeight()).isEqualTo(2000.0);
+        assertThat(storageFromDb.get().getCreatedAt()).isEqualTo(fixedTime);
     }
+
 
 }
