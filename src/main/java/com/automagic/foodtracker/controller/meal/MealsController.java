@@ -45,6 +45,16 @@ public class MealsController {
         );
     }
 
+    @DeleteMapping("/{mealId}")
+    public ResponseEntity<Void> deletMeal(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @PathVariable String mealId) {
+
+        mealService.deleteMeal(user.getUserId(), mealId);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @GetMapping
     public ResponseEntity<List<MealResponse>> getMeals(
             @AuthenticationPrincipal AuthenticatedUser user,

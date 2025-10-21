@@ -29,9 +29,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -210,5 +209,15 @@ public class MealControllerTest {
                 .andExpect(jsonPath("$.carbs").value("0.0"))
                 .andExpect(jsonPath("$.fat").value("0.0"))
                 .andExpect(jsonPath("$.kcal").value("0.0"));
+    }
+
+    @Test
+    @WithMockUserId(mockUserId)
+    void deleteMealReturnsConfirmationMessage() throws Exception {
+        final String mealIdToDelete = "meal123";
+
+        mockMvc.perform(delete("/api/meals/{mealId}", mealIdToDelete))
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$").doesNotExist());
     }
 }

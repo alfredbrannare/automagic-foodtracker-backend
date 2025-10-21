@@ -20,6 +20,7 @@ public class MealServiceImpl implements MealService {
     private final MealRepository mealRepository;
     private final StorageService storageService;
 
+    @Override
     public Nutrition getDailyNutrition(String userId, Instant from, Instant to) {
         Collection<Meal> meals = mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
 
