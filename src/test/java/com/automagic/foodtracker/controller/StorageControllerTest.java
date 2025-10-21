@@ -27,6 +27,7 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -95,5 +96,28 @@ public class StorageControllerTest {
                 .andExpect(jsonPath("$.weightPerMeal").value(10.0))
                 .andExpect(jsonPath("$.lowStockThreshold").value(10.0))
                 .andExpect(jsonPath("$.lowStock").value(false));
+    }
+
+    @Test
+    @WithMockUserId("userId123")
+    void addStorageReturnsBadRequestOnNullName() throws Exception {
+        CreateStorageRequest invalidRequest = CreateStorageRequest.builder()
+                .name(null)
+                .totalWeight(200.0)
+                .weightPerMeal(10.0)
+                .lowStockThreshold(10.0)
+                .nutritionPer100g(new Nutrition(1.1, 1.1, 1.1, 1.1))
+                .build();
+
+        mockMvc.perform(post("/api/storage")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+
+                .andDo(print())
+
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors[0].field").value("name"));
     }
 }
