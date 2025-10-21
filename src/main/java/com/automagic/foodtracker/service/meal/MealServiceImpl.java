@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Collection;
 
+import static java.lang.Math.round;
+
 @Service
 @RequiredArgsConstructor
 public class MealServiceImpl implements MealService {
@@ -26,7 +28,7 @@ public class MealServiceImpl implements MealService {
         double totalFat = meals.stream().mapToDouble(m -> m.getNutrition().fat()).sum();
         double totalKcal = meals.stream().mapToDouble(m -> m.getNutrition().kcal()).sum();
 
-        return new Nutrition(totalProtein, totalCarbs, totalFat, totalKcal);
+        return new Nutrition(round(totalProtein), round(totalCarbs), round(totalFat), round(totalKcal));
     }
 
     @Override
