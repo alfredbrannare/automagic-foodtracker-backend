@@ -3,6 +3,7 @@ package com.automagic.foodtracker.controller.meal;
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
 import com.automagic.foodtracker.dto.response.meal.MealResponse;
 import com.automagic.foodtracker.entity.Meal;
+import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.mapper.meal.MealMapper;
 import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.meal.MealService;
@@ -46,19 +47,33 @@ public class MealsController {
 
     @GetMapping
     public ResponseEntity<List<MealResponse>> getMeals(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
         LocalDate targetDate = (date != null) ? date : LocalDate.now();
         Instant from = targetDate.atStartOfDay(ZoneOffset.UTC).toInstant();
         Instant to = targetDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).minusNanos(1).toInstant();
 
-        List<MealResponse> response = mealService.getMealsForUserBetween(userId, from, to)
+        List<MealResponse> response = mealService.getMealsForUserBetween(user.getUserId(), from, to)
                 .stream()
                 .map(MealMapper::toResponse)
                 .toList();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<Nutrition> getDailyNutritionSummary(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @RequestParam(value = "default", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        Instant from = targetDate.atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant to = targetDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).minusNanos(1).toInstant();
+
+        Nutrition dailyNutrition = mealService.getDailyNutrition(user.getUserId(), from, to);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dailyNutrition);
     }
 
 }

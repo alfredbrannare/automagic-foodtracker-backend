@@ -22,11 +22,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.List;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -148,4 +151,64 @@ public class MealControllerTest {
                 .andExpect(jsonPath("$.errors[0].field").value("name"));
     }
 
+    @Test
+    @WithMockUserId(mockUserId)
+    void getMealsReturnsMealsForSpecificDate() throws Exception {
+        List<Meal> mockMeals = List.of(mockedMealManual);
+
+        when(mealService.getMealsForUserBetween(eq(mockUserId), any(Instant.class), any(Instant.class)))
+                .thenReturn(mockMeals);
+
+        mockMvc.perform((get("/api/meals")
+                .param("date", "2024-01-15")))
+
+                .andDo(print())
+
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$.[0].id").value("meal456"))
+                .andExpect(jsonPath("$.[0].name").value("Pizza"))
+                .andExpect(jsonPath("$.[0].storageId").value(nullValue()));
+
+    }
+
+    @Test
+    @WithMockUserId(mockUserId)
+    void getDailyNutritionSummaryReturnsCorrectTotals() throws Exception {
+        Nutrition mockSummary = new Nutrition(50.0, 50.0, 50.0, 50.0);
+
+        when(mealService.getDailyNutrition(eq(mockUserId), any(Instant.class), any(Instant.class)))
+                .thenReturn(mockSummary);
+
+        mockMvc.perform((get("/api/meals/summary")
+                .param("date", "2024-01-15")))
+
+                .andDo(print())
+
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.protein").value("50.0"))
+                .andExpect(jsonPath("$.carbs").value("50.0"))
+                .andExpect(jsonPath("$.fat").value("50.0"))
+                .andExpect(jsonPath("$.kcal").value("50.0"));
+    }
+
+    @Test
+    @WithMockUserId(mockUserId)
+    void getDailyNutritionSummaryReturnsEmptyTotals() throws Exception {
+        Nutrition mockSummary = new Nutrition(0.0, 0.0, 0.0, 0.0);
+
+        when(mealService.getDailyNutrition(eq(mockUserId), any(Instant.class), any(Instant.class)))
+                .thenReturn(mockSummary);
+
+        mockMvc.perform((get("/api/meals/summary")
+                        .param("date", "2024-01-15")))
+
+                .andDo(print())
+
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.protein").value("0.0"))
+                .andExpect(jsonPath("$.carbs").value("0.0"))
+                .andExpect(jsonPath("$.fat").value("0.0"))
+                .andExpect(jsonPath("$.kcal").value("0.0"));
+    }
 }
