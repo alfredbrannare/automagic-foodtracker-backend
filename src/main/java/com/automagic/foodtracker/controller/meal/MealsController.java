@@ -4,7 +4,9 @@ import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
 import com.automagic.foodtracker.dto.response.meal.MealResponse;
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.mapper.meal.MealMapper;
+import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.meal.MealService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,10 +27,10 @@ public class MealsController {
 
     @PostMapping
     public ResponseEntity<MealResponse> addMeal(
-            @AuthenticationPrincipal String userId,
-            @RequestBody CreateMealRequest request) {
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @Valid @RequestBody CreateMealRequest request) {
 
-        Meal saved = mealService.registerMeal(userId, request);
+        Meal saved = mealService.registerMeal(user.getUserId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 MealResponse.builder()
@@ -38,7 +40,6 @@ public class MealsController {
                         .consumedAt(saved.getConsumedAt())
                         .nutrition(saved.getNutrition())
                         .storageId(saved.getStorageId())
-                        .storageName(null)
                         .build()
         );
     }

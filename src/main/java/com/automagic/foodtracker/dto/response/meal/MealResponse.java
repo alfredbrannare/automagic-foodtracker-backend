@@ -19,5 +19,4 @@ public class MealResponse {
     private Instant consumedAt;
     private Nutrition nutrition;
     private String storageId;
-    private String storageName;
 }

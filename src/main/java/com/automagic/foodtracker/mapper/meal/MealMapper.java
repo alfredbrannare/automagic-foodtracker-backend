@@ -12,7 +12,6 @@ public class MealMapper {
                 .consumedAt(meal.getConsumedAt())
                 .nutrition(meal.getNutrition())
                 .storageId(meal.getStorageId())
-                .storageName(null)
                 .build();
     }
 }
