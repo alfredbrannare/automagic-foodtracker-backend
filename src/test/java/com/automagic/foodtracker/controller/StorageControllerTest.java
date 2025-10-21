@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.controller;
 
+import com.automagic.foodtracker.config.WithMockUserId;
 import com.automagic.foodtracker.controller.storage.StorageController;
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
 import com.automagic.foodtracker.entity.Nutrition;
@@ -23,8 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -69,12 +69,12 @@ public class StorageControllerTest {
         mockedStorage.setNutritionPer100g(new Nutrition(1.1, 1.1, 1.1, 1.1));
         mockedStorage.setCreatedAt(Instant.now());
 
-        when(storageService.registerStorage(isNull(), any(CreateStorageRequest.class)))
+        when(storageService.registerStorage(eq("userId123"), any(CreateStorageRequest.class)))
                 .thenReturn(mockedStorage);
     }
 
     @Test
-    @WithMockUser(username = "userId123")
+    @WithMockUserId("userId123")
     void addStorageReturnsCreatedStorage() throws Exception {
         CreateStorageRequest request = CreateStorageRequest.builder()
                 .name("Chicken")

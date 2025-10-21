@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.filter;
 
+import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,6 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(token)) {
                 String userId = jwtUtil.extractUserId(token);
+
+                AuthenticatedUser principal = new AuthenticatedUser(userId);
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userId, null, null);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

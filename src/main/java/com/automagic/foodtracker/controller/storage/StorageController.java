@@ -3,12 +3,14 @@ package com.automagic.foodtracker.controller.storage;
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
 import com.automagic.foodtracker.dto.response.storage.StorageResponse;
 import com.automagic.foodtracker.entity.Storage;
+import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.storage.StorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,10 +24,10 @@ public class StorageController {
 
     @PostMapping()
     public ResponseEntity<StorageResponse> addStorage(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody CreateStorageRequest request) {
 
-        Storage saved = storageService.registerStorage(userId, request);
+        Storage saved = storageService.registerStorage(user.getUserId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 StorageResponse.builder()
