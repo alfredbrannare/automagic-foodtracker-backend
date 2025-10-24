@@ -1,0 +1,57 @@
+@startuml
+' Entities
+class User {
+    - id: Long
+    - username: String
+    - email: String
+    - password: String
+    - role: String
+    - goals: Goals
+}
+
+class Goals {
+    - proteinGoal: int
+    - carbsGoal: int
+    - fatGoal: int
+    - calorieGoal: int
+}
+
+' Repository
+interface UserRepository {
+    + save(user: User): User
+    + findByUsername(username: String): Optional<User>
+    + existsByUsername(username: String): boolean
+    + existsByEmail(email: String): boolean
+}
+
+' Services
+interface UserService {
+    + createUser(username: String, email: String, plainPassword: String): User
+    + findByUsername(username: String): User
+    + verifyPassword(plainPassword: String, hashedPassword: String): boolean
+    + usernameExists(username: String): boolean
+    + emailExists(email: String): boolean
+}
+
+class UserServiceImpl {
+    - userRepository: UserRepository
+    - passwordEncoder: PasswordEncoder
+    + createUser(username: String, email: String, plainPassword: String): User
+    + findByUsername(username: String): User
+    + verifyPassword(plainPassword: String, hashedPassword: String): boolean
+    + usernameExists(username: String): boolean
+    + emailExists(email: String): boolean
+}
+
+' Spring Security
+interface PasswordEncoder {
+    + encode(rawPassword: String): String
+    + matches(rawPassword: String, encodedPassword: String): boolean
+}
+
+' Relationships
+UserServiceImpl --> UserRepository
+UserServiceImpl --> PasswordEncoder
+UserServiceImpl ..|> UserService
+User "1" *-- "1" Goals
+@enduml

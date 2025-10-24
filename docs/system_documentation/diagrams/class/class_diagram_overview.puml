@@ -1,0 +1,145 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+' Entities
+class User {
+    -id: String
+    -username: String
+    -password: String
+    -email: String
+    -createdAt: Instant
+    -goals: Goals
+    -role: String
+}
+
+class Goals {
+    -targetProtein: double
+    -targetCarbs: double
+    -targetFat: double
+    -targetCalories: double
+}
+
+class Meal {
+    -id: String
+    -userId: String
+    -storageId: String
+    -name: String
+    -weight: double
+    -nutrition: Nutrition
+    -consumedAt: Instant
+}
+
+class Nutrition {
+    -protein: double
+    -carbs: double
+    -fat: double
+    -calories: double
+}
+
+class Storage {
+    -id: String
+    -userId: String
+    -name: String
+    -totalWeight: double
+    -consumedWeight: double
+    -weightPerMeal: double
+    -nutritionPer100g: Nutrition
+    -lowStockThreshold: double
+    -createdAt: Instant
+    -updatedAt: Instant
+}
+
+' Repositories
+interface UserRepository
+interface MealRepository
+interface StorageRepository
+
+' Services
+interface UserService {
+    createUser(name: String, email: String, password: String): User
+    findByUsername(username: String): User
+    verifyPassword(password: String, hashedPassword: String): boolean
+    usernameExists(username: String): boolean
+    emailExists(email: String): boolean
+}
+
+class UserServiceImpl {
+    +createUser(name: String, email: String, password: String): User
+    +findByUsername(username: String): User
+    +verifyPassword(password: String, hashedPassword: String): boolean
+    +usernameExists(username: String): boolean
+    +emailExists(email: String): boolean
+}
+
+interface MealService {
+    registerMeal(userId: String, request: CreateMealRequest): Meal
+    getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
+    getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
+    deleteMeal(userId: String, mealId: String): void
+}
+
+class MealServiceImpl {
+    +registerMeal(userId: String, request: CreateMealRequest): Meal
+    +getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
+    +getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
+    +deleteMeal(userId: String, mealId: String): void
+}
+
+interface StorageService {
+    registerStorage(userId: String, request: CreateStorageRequest): Storage
+    getNutrition(storageId: String, userId: String): Nutrition
+}
+
+class StorageServiceImpl {
+    +registerStorage(userId: String, request: CreateStorageRequest): Storage
+    +getNutrition(storageId: String, userId: String): Nutrition
+}
+
+interface AuthService {
+    register(request: RegisterRequest): AuthResponse
+    login(request: LoginRequest): AuthResponse
+}
+
+class AuthServiceImpl {
+    +register(request: RegisterRequest): AuthResponse
+    +login(request: LoginRequest): AuthResponse
+    -generateAuthResponse(user: User): AuthResponse
+}
+
+' Controllers
+class AuthenticationController
+class MealsController
+class StorageController
+
+' Real Relationships
+UserServiceImpl --> UserRepository
+MealServiceImpl --> MealRepository
+MealServiceImpl --> StorageService
+StorageServiceImpl --> StorageRepository
+AuthServiceImpl --> UserService
+AuthenticationController --> AuthService
+AuthenticationController --> UserService
+MealsController --> MealService
+StorageController --> StorageService
+
+' Entity Associations
+User "1" -- "1" Goals
+Meal "1" -- "1" Nutrition
+Storage "1" -- "1" Nutrition
+
+' Implementation
+UserServiceImpl ..|> UserService
+MealServiceImpl ..|> MealService
+StorageServiceImpl ..|> StorageService
+AuthServiceImpl ..|> AuthService
+
+' Hidden links to force horizontal layout
+User -[hidden]->UserServiceImpl
+Meal -[hidden]->MealServiceImpl
+Storage -[hidden]->StorageServiceImpl
+UserServiceImpl -[hidden]->AuthenticationController
+MealServiceImpl -[hidden]->MealsController
+StorageServiceImpl -[hidden]->StorageController
+
+@enduml
