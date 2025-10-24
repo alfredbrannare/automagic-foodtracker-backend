@@ -1,0 +1,16 @@
+@startuml
+start
+
+:Receive POST /register or /login request;
+
+if (Register?) then (yes)
+    :Create new user;
+else (no)
+    :Validate credentials;
+endif
+
+:Generate JWT token;
+:Return success response;
+
+stop
+@enduml

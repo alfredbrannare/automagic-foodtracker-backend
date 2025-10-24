@@ -1,0 +1,19 @@
+@startuml
+left to right direction
+
+actor Frontend
+
+rectangle "Backend Users Endpoint" {
+    (Register User)
+    (Login User)
+}
+
+database "Database" as DB
+
+Frontend --> (Register User)
+Frontend --> (Login User)
+
+(Register User) --> DB : + upload / Users table
+(Login User) --> DB : + read / Users table
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+left to right direction
+
+actor Frontend
+
+rectangle "Backend Meal Endpoint" {
+    (Log Meal from Storage)
+    (Log Custom Meal)
+    (Delete Meal)
+    (See Daily Nutrition)
+}
+
+database "Database" as DB
+
+Frontend --> (Log Meal from Storage)
+Frontend --> (Log Custom Meal)
+Frontend --> (Delete Meal)
+Frontend --> (See Daily Nutrition)
+
+(Log Meal from Storage) --> DB : + upload / Meals table
+(Log Custom Meal) --> DB : + upload / Meals table
+(Delete Meal) --> DB : + delete / Meals table
+(See Daily Nutrition) --> DB : + read / Meals table
+
+@enduml

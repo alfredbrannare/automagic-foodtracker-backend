@@ -1,0 +1,13 @@
+@startuml
+start
+
+:Receive POST /storage request;
+:Validate JWT token;
+
+:Log storage item;
+:Create storage record;
+:Save to database;
+
+:Return success response;
+stop
+@enduml

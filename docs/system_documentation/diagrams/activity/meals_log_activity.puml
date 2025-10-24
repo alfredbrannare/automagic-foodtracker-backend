@@ -1,0 +1,25 @@
+@startuml
+start
+
+:Receive POST /meals request;
+:Validate JWT token;
+
+if (Storage item provided?) then (yes)
+  :Fetch storage item;
+  :Calculate nutrition;
+  :Create meal record;
+  :Update storage;
+  :Check low stock;
+  if (Low stock?) then (yes)
+    :Set lowStock field to true;
+  endif
+else (no)
+  :Log custom meal;
+  :Calculate nutrition;
+  :Create meal record;
+endif
+
+:Save to database;
+:Return success response;
+stop
+@enduml

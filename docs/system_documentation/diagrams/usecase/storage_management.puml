@@ -1,0 +1,22 @@
+@startuml
+left to right direction
+
+actor Frontend
+
+rectangle "Backend Storage Endpoint" {
+    (Add Storage Item)
+    (Delete Storage Item)
+    (View Storage Log)
+}
+
+database "Database" as DB
+
+Frontend --> (Add Storage Item)
+Frontend --> (Delete Storage Item)
+Frontend --> (View Storage Log)
+
+(Add Storage Item) --> DB : + upload / Storage table
+(Delete Storage Item) --> DB : + delete / Storage table
+(View Storage Log) --> DB : + read / Storage table
+
+@enduml

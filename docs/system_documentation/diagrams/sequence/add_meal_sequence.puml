@@ -1,0 +1,23 @@
+@startuml
+actor User
+participant "Frontend (React)" as FE
+participant "Backend Controller" as BE
+participant "MealService" as Service
+participant "MealRepository" as Repo
+participant "Database" as DB
+
+== Add Meal (Authenticated User, Detailed) ==
+
+User -> FE: 1. Clicks "Add Meal"
+FE -> BE: 2. POST /api/meals (JWT in header)
+BE -> BE: 3. Validate JWT token
+BE -> Service: 4. createMeal(request)
+Service -> Repo: 5. save(meal)
+Repo -> DB: 6. INSERT meal record
+DB --> Repo: 7. Meal saved (returns ID)
+Repo --> Service: 8. Meal saved confirmation
+Service --> BE: 9. MealResponse
+BE --> FE: 10. HTTP 201 Created + MealResponse
+FE --> User: 11. Displays new meal in list
+
+@enduml

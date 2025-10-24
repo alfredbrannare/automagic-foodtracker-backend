@@ -46,7 +46,7 @@ public class MealsController {
     }
 
     @DeleteMapping("/{mealId}")
-    public ResponseEntity<Void> deletMeal(
+    public ResponseEntity<Void> deleteMeal(
             @AuthenticationPrincipal AuthenticatedUser user,
             @PathVariable String mealId) {
 
