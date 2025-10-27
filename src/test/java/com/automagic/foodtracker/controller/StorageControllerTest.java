@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 @WebMvcTest(controllers = StorageController.class,
         excludeAutoConfiguration = {
@@ -118,5 +119,18 @@ public class StorageControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors").isArray())
                 .andExpect(jsonPath("$.errors[0].field").value("name"));
+    }
+
+    @Test
+    @WithMockUserId("userId123")
+    void deleteStorageReturnsNoContent() throws Exception {
+        final String storageIdToDelete = "storage23";
+
+        mockMvc.perform(delete("/api/storage/{id}", storageIdToDelete))
+
+                .andDo(print())
+
+                .andExpect(status().isNoContent())
+                .andExpect(jsonPath("$").doesNotExist());
     }
 }

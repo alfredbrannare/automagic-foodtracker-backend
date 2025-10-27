@@ -43,4 +43,10 @@ public class StorageServiceImpl implements StorageService {
                 .orElseThrow(() -> new StorageNotFoundException(storageId, userId))
                 .getNutritionPer100g();
     }
+
+    @Override
+    public void deleteStorage(String userId, String storageId) {
+        storageRepository.findByIdAndUserId(storageId, userId)
+                .ifPresent(storageRepository::delete);
+    }
 }

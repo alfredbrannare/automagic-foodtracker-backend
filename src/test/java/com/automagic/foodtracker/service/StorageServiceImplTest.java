@@ -160,5 +160,26 @@ public class StorageServiceImplTest {
         );
     }
 
+    @Test
+    @DisplayName("deleteStorage() should delete a given storageId from the database")
+    void deleteStorageRemovesStorageCorrectly() {
+        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+
+        CreateStorageRequest request = CreateStorageRequest.builder()
+                .name("Chicken")
+                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+                .totalWeight(2000.0)
+                .weightPerMeal(150.0)
+                .lowStockThreshold(450.0)
+                .createdAt(fixedTime)
+                .build();
+
+        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
+        assertThat(storageRepository.findById(registeredStorage.getId())).isPresent();
+
+        storageService.deleteStorage(this.testUser.getId(), registeredStorage.getId());
+        assertThat(storageRepository.findById(registeredStorage.getId())).isNotPresent();
+    }
+
 
 }

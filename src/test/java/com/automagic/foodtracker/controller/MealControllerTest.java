@@ -217,6 +217,9 @@ public class MealControllerTest {
         final String mealIdToDelete = "meal123";
 
         mockMvc.perform(delete("/api/meals/{mealId}", mealIdToDelete))
+
+                .andDo(print())
+
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$").doesNotExist());
     }

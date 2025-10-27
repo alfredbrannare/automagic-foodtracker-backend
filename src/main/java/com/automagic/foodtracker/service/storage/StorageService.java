@@ -7,4 +7,5 @@ import com.automagic.foodtracker.entity.Storage;
 public interface StorageService {
     Storage registerStorage(String userId, CreateStorageRequest request);
     Nutrition getNutrition(String storageId, String userId);
+    void deleteStorage(String userId, String storageId);
 }
