@@ -1,0 +1,12 @@
+@startuml
+start
+
+:Receive DELETE /api/storage/{storageId} request;
+:Validate JWT token;
+
+:Find storage item;
+:Delete storage item;
+
+:Return No content response;
+stop
+@enduml

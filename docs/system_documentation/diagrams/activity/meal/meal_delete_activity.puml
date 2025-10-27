@@ -1,0 +1,12 @@
+@startuml
+start
+
+:Receive DELETE /api/meal/{mealId} request;
+:Validate JWT token;
+
+:Find meal item;
+:Delete meal item;
+
+:Return No content response;
+stop
+@enduml
