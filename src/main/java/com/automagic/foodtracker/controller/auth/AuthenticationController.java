@@ -10,6 +10,7 @@ import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.auth.AuthService;
 import com.automagic.foodtracker.service.user.UserService;
 import com.automagic.foodtracker.util.JwtUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-    private final UserService userService;
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         try {
             AuthResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
