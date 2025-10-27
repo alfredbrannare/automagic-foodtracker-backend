@@ -149,7 +149,6 @@ AuthServiceImpl --> JwtUtil
 
 ' Controller Relationships
 AuthenticationController --> AuthService
-AuthenticationController --> UserService
 AuthenticationController --> JwtUtil
 AuthenticationController --> PasswordEncoder
 MealsController --> MealService

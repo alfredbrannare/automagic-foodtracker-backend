@@ -8,4 +8,5 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
     void deleteUser(String userId);
+    AuthResponse refreshToken(String refreshToken);
 }

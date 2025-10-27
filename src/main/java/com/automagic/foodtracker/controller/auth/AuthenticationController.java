@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.controller.auth;
 
 import com.automagic.foodtracker.dto.request.auth.LoginRequest;
+import com.automagic.foodtracker.dto.request.auth.RefreshRequest;
 import com.automagic.foodtracker.dto.request.auth.RegisterRequest;
 import com.automagic.foodtracker.dto.response.auth.AuthResponse;
 import com.automagic.foodtracker.exception.auth.InvalidCredentialsException;
@@ -50,4 +51,11 @@ public class AuthenticationController {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody RefreshRequest request) {
+        AuthResponse response = authService.refreshToken(request.refreshToken());
+        return ResponseEntity.ok(response);
+    }
+
 }

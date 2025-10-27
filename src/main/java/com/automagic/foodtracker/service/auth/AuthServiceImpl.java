@@ -1,11 +1,13 @@
 package com.automagic.foodtracker.service.auth;
 
+import com.automagic.foodtracker.config.JwtProperties;
 import com.automagic.foodtracker.dto.request.auth.LoginRequest;
 import com.automagic.foodtracker.dto.request.auth.RegisterRequest;
 import com.automagic.foodtracker.dto.response.auth.AuthResponse;
 import com.automagic.foodtracker.entity.User;
 import com.automagic.foodtracker.exception.auth.InvalidCredentialsException;
 import com.automagic.foodtracker.exception.auth.UserAlreadyExistsException;
+import com.automagic.foodtracker.service.token.RefreshTokenService;
 import com.automagic.foodtracker.service.user.UserService;
 import com.automagic.foodtracker.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtProperties jwtProperties;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -52,9 +56,30 @@ public class AuthServiceImpl implements AuthService {
         userService.deleteUser(userId);
     }
 
+    @Override
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
+        if (!refreshTokenService.findByToken(refreshToken).isPresent()) {
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
+        String userId = jwtUtil.extractUserId(refreshToken);
+        User user = userService.findById(userId);
+
+        AuthResponse response = generateAuthResponse(user);
+
+        refreshTokenService.createToken(userId, response.getRefreshToken(), jwtProperties.getRefreshExpiration());
+
+        return response;
+    }
+
     private AuthResponse generateAuthResponse(User user) {
         String accessToken = jwtUtil.generateToken(user.getId());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
         return new AuthResponse(accessToken, refreshToken, "Success");
     }
 }
