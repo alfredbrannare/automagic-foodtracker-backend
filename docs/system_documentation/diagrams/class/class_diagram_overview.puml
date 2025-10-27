@@ -62,6 +62,7 @@ interface UserService {
     verifyPassword(password: String, hashedPassword: String): boolean
     usernameExists(username: String): boolean
     emailExists(email: String): boolean
+    deleteUser(userId: String): void
 }
 
 class UserServiceImpl {
@@ -70,6 +71,7 @@ class UserServiceImpl {
     +verifyPassword(password: String, hashedPassword: String): boolean
     +usernameExists(username: String): boolean
     +emailExists(email: String): boolean
+    +deleteUser(userId: String): void
 }
 
 interface MealService {
@@ -89,22 +91,46 @@ class MealServiceImpl {
 interface StorageService {
     registerStorage(userId: String, request: CreateStorageRequest): Storage
     getNutrition(storageId: String, userId: String): Nutrition
+    deleteStorage(userId: String, storageId: String): void
 }
 
 class StorageServiceImpl {
     +registerStorage(userId: String, request: CreateStorageRequest): Storage
     +getNutrition(storageId: String, userId: String): Nutrition
+    +deleteStorage(userId: String, storageId: String): void
 }
 
 interface AuthService {
     register(request: RegisterRequest): AuthResponse
     login(request: LoginRequest): AuthResponse
+    deleteUser(userId: String): void
 }
 
 class AuthServiceImpl {
     +register(request: RegisterRequest): AuthResponse
     +login(request: LoginRequest): AuthResponse
     -generateAuthResponse(user: User): AuthResponse
+    +deleteUser(userId: String): void
+}
+
+' Security & Utilities
+class JwtUtil {
+    +generateToken(userId: String): String
+    +generateRefreshToken(userId: String): String
+    +extractUserId(token: String): String
+    +validateToken(token: String): boolean
+}
+
+class JwtAuthenticationFilter
+
+interface PasswordEncoder
+
+class SecurityConfig
+
+class JwtProperties {
+    -secret: String
+    -expiration: long
+    -refreshExpiration: long
 }
 
 ' Controllers
@@ -112,16 +138,28 @@ class AuthenticationController
 class MealsController
 class StorageController
 
-' Real Relationships
+' Service Relationships
 UserServiceImpl --> UserRepository
+UserServiceImpl --> PasswordEncoder
 MealServiceImpl --> MealRepository
 MealServiceImpl --> StorageService
 StorageServiceImpl --> StorageRepository
 AuthServiceImpl --> UserService
+AuthServiceImpl --> JwtUtil
+
+' Controller Relationships
 AuthenticationController --> AuthService
 AuthenticationController --> UserService
+AuthenticationController --> JwtUtil
+AuthenticationController --> PasswordEncoder
 MealsController --> MealService
 StorageController --> StorageService
+
+' Security Relationships
+JwtAuthenticationFilter --> JwtUtil
+SecurityConfig --> JwtAuthenticationFilter
+SecurityConfig --> PasswordEncoder
+JwtUtil --> JwtProperties
 
 ' Entity Associations
 User "1" -- "1" Goals

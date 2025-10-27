@@ -7,4 +7,5 @@ import com.automagic.foodtracker.dto.response.auth.AuthResponse;
 public interface AuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
+    void deleteUser(String userId);
 }

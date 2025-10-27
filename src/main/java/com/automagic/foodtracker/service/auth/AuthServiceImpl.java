@@ -47,6 +47,11 @@ public class AuthServiceImpl implements AuthService {
         return generateAuthResponse(user);
     }
 
+    @Override
+    public void deleteUser(String userId) {
+        userService.deleteUser(userId);
+    }
+
     private AuthResponse generateAuthResponse(User user) {
         String accessToken = jwtUtil.generateToken(user.getId());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());

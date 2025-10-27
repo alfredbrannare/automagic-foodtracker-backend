@@ -9,4 +9,5 @@ public interface UserService {
     boolean verifyPassword(String password, String password1);
     boolean usernameExists(String username);
     boolean emailExists(String email);
+    void deleteUser(String userId);
 }

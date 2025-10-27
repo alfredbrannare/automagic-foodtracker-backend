@@ -6,12 +6,14 @@ import com.automagic.foodtracker.dto.response.auth.AuthResponse;
 import com.automagic.foodtracker.exception.auth.InvalidCredentialsException;
 import com.automagic.foodtracker.exception.auth.UserAlreadyExistsException;
 import com.automagic.foodtracker.repository.user.UserRepository;
+import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.auth.AuthService;
 import com.automagic.foodtracker.service.user.UserService;
 import com.automagic.foodtracker.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,5 +45,12 @@ public class AuthenticationController {
         } catch (InvalidCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse(null, null, e.getMessage()));
         }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal AuthenticatedUser user) {
+        authService.deleteUser(user.getUserId());
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
