@@ -217,4 +217,13 @@ public class StorageServiceImplTest {
         assertThat(response).hasSize(2);
         assertThat(response).containsExactlyInAnyOrder(registeredStorage, registeredStorage2);
     }
+
+    @Test
+    @DisplayName("getStorage() should return an empty list when no storage is registered for a given user")
+    void getStorageReturnsEmptyListWhenNoStorageIsRegistered() {
+        Collection<Storage> response = storageService.getStorage(this.otherTestUser.getId());
+
+        assertThat(response).isEmpty();
+    }
+
 }
