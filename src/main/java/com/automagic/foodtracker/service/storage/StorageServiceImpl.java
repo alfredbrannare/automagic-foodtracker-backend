@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,5 +50,10 @@ public class StorageServiceImpl implements StorageService {
     public void deleteStorage(String userId, String storageId) {
         storageRepository.findByIdAndUserId(storageId, userId)
                 .ifPresent(storageRepository::delete);
+    }
+
+    @Override
+    public Collection<Storage> getStorage(String userId123) {
+        return storageRepository.findByUserId(userId123);
     }
 }

@@ -31,6 +31,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -181,5 +183,38 @@ public class StorageServiceImplTest {
         assertThat(storageRepository.findById(registeredStorage.getId())).isNotPresent();
     }
 
+    @Test
+    @DisplayName("getStorage() should return a List of the entire user Storage")
+    void getStorageReturnsAllStorageForUser() {
+        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+        final Instant fixedTime2 = Instant.parse("2022-01-01T23:59:59.00Z");
 
+        CreateStorageRequest request = CreateStorageRequest.builder()
+                .name("Chicken")
+                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+                .totalWeight(2000.0)
+                .weightPerMeal(150.0)
+                .lowStockThreshold(450.0)
+                .createdAt(fixedTime)
+                .build();
+
+        CreateStorageRequest request2 = CreateStorageRequest.builder()
+                .name("Chicken")
+                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+                .totalWeight(2000.0)
+                .weightPerMeal(150.0)
+                .lowStockThreshold(450.0)
+                .createdAt(fixedTime2)
+                .build();
+
+        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
+        Storage registeredStorage2 = storageService.registerStorage(this.testUser.getId(), request2);
+
+
+        Collection<Storage> response = storageService.getStorage(this.testUser.getId());
+
+        assertThat(response).isNotNull();
+        assertThat(response).hasSize(2);
+        assertThat(response).containsExactlyInAnyOrder(registeredStorage, registeredStorage2);
+    }
 }

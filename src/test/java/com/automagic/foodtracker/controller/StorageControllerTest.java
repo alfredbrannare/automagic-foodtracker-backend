@@ -22,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 
 @WebMvcTest(controllers = StorageController.class,
         excludeAutoConfiguration = {
@@ -133,4 +136,47 @@ public class StorageControllerTest {
                 .andExpect(status().isNoContent())
                 .andExpect(jsonPath("$").doesNotExist());
     }
+
+    @Test
+    @WithMockUserId("userId123")
+    void getStorageReturnsEntireStorage() throws Exception {
+        List<Storage> mockedList = List.of(
+                new Storage(
+                        "id1",
+                        "userId123",
+                        "Chicken",
+                        200.0,
+                        0.0,
+                        10.0,
+                        new Nutrition(1.1,1.1,1.1,1.1),
+                        10.0,
+                        Instant.now(),
+                        Instant.now()
+                ),
+                new Storage(
+                        "id2",
+                        "userId123",
+                        "Beef",
+                        200.0,
+                        0.0,
+                        10.0,
+                        new Nutrition(1.1,1.1,1.1,1.1),
+                        10.0,
+                        Instant.now(),
+                        Instant.now()
+                )
+        );
+
+        when(storageService.getStorage("userId123")).thenReturn(mockedList);
+
+
+        mockMvc.perform(get("/api/storage"))
+                .andExpect(status().isOk())
+
+                .andDo(print())
+
+                .andExpect(jsonPath("$[0].name").value("Chicken"))
+                .andExpect(jsonPath("$[1].name").value("Beef"));
+    }
+
 }
