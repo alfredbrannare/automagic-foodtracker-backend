@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/storage")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
 public class StorageController {
     private final StorageService storageService;
 
