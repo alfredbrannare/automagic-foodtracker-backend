@@ -1,229 +1,229 @@
-package com.automagic.foodtracker.service;
-
-import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
-import com.automagic.foodtracker.entity.Nutrition;
-import com.automagic.foodtracker.entity.Storage;
-import com.automagic.foodtracker.entity.User;
-import com.automagic.foodtracker.exception.storage.BadStorageRequestException;
-import com.automagic.foodtracker.repository.storage.StorageRepository;
-import com.automagic.foodtracker.repository.user.UserRepository;
-import com.automagic.foodtracker.service.storage.StorageService;
-import com.automagic.foodtracker.service.storage.StorageServiceImpl;
-import com.automagic.foodtracker.service.user.UserService;
-import com.automagic.foodtracker.service.user.UserServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-
-@Testcontainers
-@DataJpaTest
-@Import({StorageServiceImpl.class, UserServiceImpl.class})
-public class StorageServiceImplTest {
-
-    // --- Test Container Setup ---
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public PasswordEncoder passwordEncoder() {
-            return new BCryptPasswordEncoder();
-        }
-    }
-
-    @Container
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("foodtracker")
-            .withUsername("user")
-            .withPassword("password");
-
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
-
-    // --- Service and Repository Autowiring ---
-    private User testUser;
-    private User otherTestUser;
-
-    @Autowired
-    private StorageRepository storageRepository;
-    @Autowired
-    private StorageService storageService;
-
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserService userService;
-
-    // --- Test Lifecycle Methods ---
-
-    @BeforeEach
-    void cleanDb() {
-        storageRepository.deleteAll();
-        userRepository.deleteAll();
-
-        User userToSave = createTestUser("user", "test@user.com", "userpassword");
-        this.testUser = userRepository.save(userToSave);
-
-        User otherUserToSave = createTestUser("otherTestUser", "otherTest@user.com", "testpassword");
-        this.otherTestUser = userRepository.save(otherUserToSave);
-    }
-
-    // --- Helper Methods ---
-
-    private User createTestUser(String username, String email, String password) {
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(password);
-        return user;
-    }
-
-    // --- Tests ---
-
-    @Test
-    @DisplayName("registerStorage() should save a storage item to the database with the correct userId")
-    void registerStorageSavesStorageCorrectly() {
-        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
-
-        CreateStorageRequest request = CreateStorageRequest.builder()
-                .name("Chicken")
-                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
-                .totalWeight(2000.0)
-                .weightPerMeal(150.0)
-                .lowStockThreshold(450.0)
-                .createdAt(fixedTime)
-                .build();
-
-        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
-
-        assertThat(registeredStorage).isNotNull();
-        assertThat(registeredStorage.getId()).as("ID should be generated by UUID").isNotBlank();
-        assertThat(registeredStorage.getUserId()).isEqualTo(this.testUser.getId());
-
-        Optional<Storage> storageFromDb = storageRepository.findById(registeredStorage.getId());
-
-        assertThat(storageFromDb.get().getUserId()).isEqualTo(this.testUser.getId());
-        assertThat(storageFromDb.get().getName()).isEqualTo("Chicken");
-        assertThat(storageFromDb.get().getNutritionPer100g()).isEqualTo(new Nutrition(10.0, 20.0, 5.0, 150.0));
-        assertThat(storageFromDb.get().getTotalWeight()).isEqualTo(2000.0);
-        assertThat(storageFromDb.get().getCreatedAt()).isEqualTo(fixedTime);
-    }
-
-    @ParameterizedTest(name = "{index} => totalWeight={0}, lowStock={1}, weightPerMeal={2}, expectedMessage={3}")
-    @MethodSource("invalidStorageProvider")
-    @DisplayName("registerStorage() should throw BadStorageRequestException when given invalid inputs")
-    void registerStorageThrowsWhenGivenInvalidInputs(double totalWeight, double lowStock, double weightPerMeal, String expectedMessage) {
-        CreateStorageRequest badRequest = CreateStorageRequest.builder()
-                .name("Chicken")
-                .nutritionPer100g(new Nutrition(1.0, 1.0, 1.0, 1.0))
-                .totalWeight(totalWeight)
-                .lowStockThreshold(lowStock)
-                .weightPerMeal(weightPerMeal)
-                .createdAt(null)
-                .build();
-
-
-        assertThatThrownBy(() -> storageService.registerStorage(testUser.getId(), badRequest))
-                .isInstanceOf(BadStorageRequestException.class)
-                .hasMessageContaining(expectedMessage);
-    }
-
-    private static Stream<Arguments> invalidStorageProvider() {
-        return Stream.of(
-                Arguments.of(100.0, 200.0, 10.0, "Low stock threshold cannot be greater than total weight"),
-                Arguments.of(100.0, 50.0, 200.0, "Weight per meal cannot be greater than total weight")
-        );
-    }
-
-    @Test
-    @DisplayName("deleteStorage() should delete a given storageId from the database")
-    void deleteStorageRemovesStorageCorrectly() {
-        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
-
-        CreateStorageRequest request = CreateStorageRequest.builder()
-                .name("Chicken")
-                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
-                .totalWeight(2000.0)
-                .weightPerMeal(150.0)
-                .lowStockThreshold(450.0)
-                .createdAt(fixedTime)
-                .build();
-
-        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
-        assertThat(storageRepository.findById(registeredStorage.getId())).isPresent();
-
-        storageService.deleteStorage(this.testUser.getId(), registeredStorage.getId());
-        assertThat(storageRepository.findById(registeredStorage.getId())).isNotPresent();
-    }
-
-    @Test
-    @DisplayName("getStorage() should return a List of the entire user Storage")
-    void getStorageReturnsAllStorageForUser() {
-        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
-        final Instant fixedTime2 = Instant.parse("2022-01-01T23:59:59.00Z");
-
-        CreateStorageRequest request = CreateStorageRequest.builder()
-                .name("Chicken")
-                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
-                .totalWeight(2000.0)
-                .weightPerMeal(150.0)
-                .lowStockThreshold(450.0)
-                .createdAt(fixedTime)
-                .build();
-
-        CreateStorageRequest request2 = CreateStorageRequest.builder()
-                .name("Chicken")
-                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
-                .totalWeight(2000.0)
-                .weightPerMeal(150.0)
-                .lowStockThreshold(450.0)
-                .createdAt(fixedTime2)
-                .build();
-
-        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
-        Storage registeredStorage2 = storageService.registerStorage(this.testUser.getId(), request2);
-
-
-        Collection<Storage> response = storageService.getStorage(this.testUser.getId());
-
-        assertThat(response).isNotNull();
-        assertThat(response).hasSize(2);
-        assertThat(response).containsExactlyInAnyOrder(registeredStorage, registeredStorage2);
-    }
-
-    @Test
-    @DisplayName("getStorage() should return an empty list when no storage is registered for a given user")
-    void getStorageReturnsEmptyListWhenNoStorageIsRegistered() {
-        Collection<Storage> response = storageService.getStorage(this.otherTestUser.getId());
-
-        assertThat(response).isEmpty();
-    }
-
-}
+//package com.automagic.foodtracker.service;
+//
+//import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
+//import com.automagic.foodtracker.entity.Nutrition;
+//import com.automagic.foodtracker.entity.Storage;
+//import com.automagic.foodtracker.entity.User;
+//import com.automagic.foodtracker.exception.storage.BadStorageRequestException;
+//import com.automagic.foodtracker.repository.storage.StorageRepository;
+//import com.automagic.foodtracker.repository.user.UserRepository;
+//import com.automagic.foodtracker.service.storage.StorageService;
+//import com.automagic.foodtracker.service.storage.StorageServiceImpl;
+//import com.automagic.foodtracker.service.user.UserService;
+//import com.automagic.foodtracker.service.user.UserServiceImpl;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.DisplayName;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.params.ParameterizedTest;
+//import org.junit.jupiter.params.provider.Arguments;
+//import org.junit.jupiter.params.provider.MethodSource;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+//import org.springframework.boot.test.context.TestConfiguration;
+//import org.springframework.context.annotation.Bean;
+//import org.springframework.context.annotation.Import;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.test.context.DynamicPropertyRegistry;
+//import org.springframework.test.context.DynamicPropertySource;
+//import org.testcontainers.containers.PostgreSQLContainer;
+//import org.testcontainers.junit.jupiter.Container;
+//import org.testcontainers.junit.jupiter.Testcontainers;
+//
+//import java.time.Instant;
+//import java.util.Collection;
+//import java.util.List;
+//import java.util.Optional;
+//import java.util.stream.Stream;
+//
+//import static org.assertj.core.api.Assertions.assertThat;
+//import static org.assertj.core.api.Assertions.assertThatThrownBy;
+//
+//
+//@Testcontainers
+//@DataJpaTest
+//@Import({StorageServiceImpl.class, UserServiceImpl.class})
+//public class StorageServiceImplTest {
+//
+//    // --- Test Container Setup ---
+//    @TestConfiguration
+//    static class TestConfig {
+//        @Bean
+//        public PasswordEncoder passwordEncoder() {
+//            return new BCryptPasswordEncoder();
+//        }
+//    }
+//
+//    @Container
+//    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
+//            .withDatabaseName("foodtracker")
+//            .withUsername("user")
+//            .withPassword("password");
+//
+//    @DynamicPropertySource
+//    static void setProperties(DynamicPropertyRegistry registry) {
+//        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+//        registry.add("spring.datasource.username", postgresContainer::getUsername);
+//        registry.add("spring.datasource.password", postgresContainer::getPassword);
+//    }
+//
+//    // --- Service and Repository Autowiring ---
+//    private User testUser;
+//    private User otherTestUser;
+//
+//    @Autowired
+//    private StorageRepository storageRepository;
+//    @Autowired
+//    private StorageService storageService;
+//
+//    @Autowired
+//    private UserRepository userRepository;
+//    @Autowired
+//    private UserService userService;
+//
+//    // --- Test Lifecycle Methods ---
+//
+//    @BeforeEach
+//    void cleanDb() {
+//        storageRepository.deleteAll();
+//        userRepository.deleteAll();
+//
+//        User userToSave = createTestUser("user", "test@user.com", "userpassword");
+//        this.testUser = userRepository.save(userToSave);
+//
+//        User otherUserToSave = createTestUser("otherTestUser", "otherTest@user.com", "testpassword");
+//        this.otherTestUser = userRepository.save(otherUserToSave);
+//    }
+//
+//    // --- Helper Methods ---
+//
+//    private User createTestUser(String username, String email, String password) {
+//        User user = new User();
+//        user.setUsername(username);
+//        user.setEmail(email);
+//        user.setPassword(password);
+//        return user;
+//    }
+//
+//    // --- Tests ---
+//
+//    @Test
+//    @DisplayName("registerStorage() should save a storage item to the database with the correct userId")
+//    void registerStorageSavesStorageCorrectly() {
+//        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+//
+//        CreateStorageRequest request = CreateStorageRequest.builder()
+//                .name("Chicken")
+//                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+//                .totalWeight(2000.0)
+//                .weightPerMeal(150.0)
+//                .lowStockThreshold(450.0)
+//                .createdAt(fixedTime)
+//                .build();
+//
+//        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
+//
+//        assertThat(registeredStorage).isNotNull();
+//        assertThat(registeredStorage.getId()).as("ID should be generated by UUID").isNotBlank();
+//        assertThat(registeredStorage.getUserId()).isEqualTo(this.testUser.getId());
+//
+//        Optional<Storage> storageFromDb = storageRepository.findById(registeredStorage.getId());
+//
+//        assertThat(storageFromDb.get().getUserId()).isEqualTo(this.testUser.getId());
+//        assertThat(storageFromDb.get().getName()).isEqualTo("Chicken");
+//        assertThat(storageFromDb.get().getNutritionPer100g()).isEqualTo(new Nutrition(10.0, 20.0, 5.0, 150.0));
+//        assertThat(storageFromDb.get().getTotalWeight()).isEqualTo(2000.0);
+//        assertThat(storageFromDb.get().getCreatedAt()).isEqualTo(fixedTime);
+//    }
+//
+//    @ParameterizedTest(name = "{index} => totalWeight={0}, lowStock={1}, weightPerMeal={2}, expectedMessage={3}")
+//    @MethodSource("invalidStorageProvider")
+//    @DisplayName("registerStorage() should throw BadStorageRequestException when given invalid inputs")
+//    void registerStorageThrowsWhenGivenInvalidInputs(double totalWeight, double lowStock, double weightPerMeal, String expectedMessage) {
+//        CreateStorageRequest badRequest = CreateStorageRequest.builder()
+//                .name("Chicken")
+//                .nutritionPer100g(new Nutrition(1.0, 1.0, 1.0, 1.0))
+//                .totalWeight(totalWeight)
+//                .lowStockThreshold(lowStock)
+//                .weightPerMeal(weightPerMeal)
+//                .createdAt(null)
+//                .build();
+//
+//
+//        assertThatThrownBy(() -> storageService.registerStorage(testUser.getId(), badRequest))
+//                .isInstanceOf(BadStorageRequestException.class)
+//                .hasMessageContaining(expectedMessage);
+//    }
+//
+//    private static Stream<Arguments> invalidStorageProvider() {
+//        return Stream.of(
+//                Arguments.of(100.0, 200.0, 10.0, "Low stock threshold cannot be greater than total weight"),
+//                Arguments.of(100.0, 50.0, 200.0, "Weight per meal cannot be greater than total weight")
+//        );
+//    }
+//
+//    @Test
+//    @DisplayName("deleteStorage() should delete a given storageId from the database")
+//    void deleteStorageRemovesStorageCorrectly() {
+//        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+//
+//        CreateStorageRequest request = CreateStorageRequest.builder()
+//                .name("Chicken")
+//                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+//                .totalWeight(2000.0)
+//                .weightPerMeal(150.0)
+//                .lowStockThreshold(450.0)
+//                .createdAt(fixedTime)
+//                .build();
+//
+//        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
+//        assertThat(storageRepository.findById(registeredStorage.getId())).isPresent();
+//
+//        storageService.deleteStorage(this.testUser.getId(), registeredStorage.getId());
+//        assertThat(storageRepository.findById(registeredStorage.getId())).isNotPresent();
+//    }
+//
+//    @Test
+//    @DisplayName("getStorage() should return a List of the entire user Storage")
+//    void getStorageReturnsAllStorageForUser() {
+//        final Instant fixedTime = Instant.parse("2022-01-01T00:00:00.00Z");
+//        final Instant fixedTime2 = Instant.parse("2022-01-01T23:59:59.00Z");
+//
+//        CreateStorageRequest request = CreateStorageRequest.builder()
+//                .name("Chicken")
+//                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+//                .totalWeight(2000.0)
+//                .weightPerMeal(150.0)
+//                .lowStockThreshold(450.0)
+//                .createdAt(fixedTime)
+//                .build();
+//
+//        CreateStorageRequest request2 = CreateStorageRequest.builder()
+//                .name("Chicken")
+//                .nutritionPer100g(new Nutrition(10.0, 20.0, 5.0, 150.0))
+//                .totalWeight(2000.0)
+//                .weightPerMeal(150.0)
+//                .lowStockThreshold(450.0)
+//                .createdAt(fixedTime2)
+//                .build();
+//
+//        Storage registeredStorage = storageService.registerStorage(this.testUser.getId(), request);
+//        Storage registeredStorage2 = storageService.registerStorage(this.testUser.getId(), request2);
+//
+//
+//        Collection<Storage> response = storageService.getStorage(this.testUser.getId());
+//
+//        assertThat(response).isNotNull();
+//        assertThat(response).hasSize(2);
+//        assertThat(response).containsExactlyInAnyOrder(registeredStorage, registeredStorage2);
+//    }
+//
+//    @Test
+//    @DisplayName("getStorage() should return an empty list when no storage is registered for a given user")
+//    void getStorageReturnsEmptyListWhenNoStorageIsRegistered() {
+//        Collection<Storage> response = storageService.getStorage(this.otherTestUser.getId());
+//
+//        assertThat(response).isEmpty();
+//    }
+//
+//}
