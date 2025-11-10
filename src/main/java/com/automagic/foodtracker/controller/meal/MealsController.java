@@ -31,18 +31,12 @@ public class MealsController {
             @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody CreateMealRequest request) {
 
-        Meal saved = mealService.registerMeal(user.getUserId(), request);
+        Meal meal = MealMapper.toEntity(request);
+        Meal saved = mealService.registerMeal(user.getUserId(), meal);
+        MealResponse response = MealMapper.toResponse(saved);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                MealResponse.builder()
-                        .id(saved.getId())
-                        .name(saved.getName())
-                        .weight(saved.getWeight())
-                        .consumedAt(saved.getConsumedAt())
-                        .nutrition(saved.getNutrition())
-                        .storageId(saved.getStorageId())
-                        .build()
-        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
     }
 
     @DeleteMapping("/{mealId}")

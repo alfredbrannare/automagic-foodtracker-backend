@@ -33,14 +33,8 @@ public class MealServiceImpl implements MealService {
     }
 
     @Override
-    public Meal registerMeal(String userId, CreateMealRequest request) {
-        Meal meal = new Meal();
+    public Meal registerMeal(String userId, Meal meal) {
         meal.setUserId(userId);
-        meal.setName(request.getName());
-        meal.setWeight(request.getWeight());
-        meal.setNutrition(request.getNutrition());
-        meal.setConsumedAt(request.getConsumedAt() != null ? request.getConsumedAt() : Instant.now());
-        meal.setStorageId(request.getStorageId());
 
         return mealRepository.save(meal);
     }
