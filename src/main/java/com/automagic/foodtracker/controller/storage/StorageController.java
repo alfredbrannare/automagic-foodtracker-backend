@@ -26,20 +26,11 @@ public class StorageController {
             @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody CreateStorageRequest request) {
 
-        Storage saved = storageService.registerStorage(user.getUserId(), request);
+        Storage storage = StorageMapper.toEntity(request);
+        Storage saved = storageService.registerStorage(user.getUserId(), storage);
+        StorageResponse response = StorageMapper.toResponse(saved);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                StorageResponse.builder()
-                        .id(saved.getId())
-                        .name(saved.getName())
-                        .totalWeight(saved.getTotalWeight())
-                        .consumedWeight(saved.getConsumedWeight())
-                        .weightPerMeal(saved.getWeightPerMeal())
-                        .lowStockThreshold(saved.getLowStockThreshold())
-                        .createdAt(saved.getCreatedAt())
-                        .lowStock(saved.isLowStock())
-                        .build()
-        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{storageId}")
