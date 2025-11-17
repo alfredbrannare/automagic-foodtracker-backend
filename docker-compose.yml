@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:13.2
+    environment:
+      - 'POSTGRES_DATABASE=foodtracker-db'
+      - 'POSTGRES_USER=user'
+      - 'POSTGRES_PASSWORD=secret'
+    ports:
+      - '5432:5432'
+
+  db-dev:
+    image: postgres:13.2
+    environment:
+      - 'POSTGRES_DB=foodtracker-db-dev'
+      - 'POSTGRES_USER=user'
+      - 'POSTGRES_PASSWORD=secret'
+    ports:
+      - '5433:5432'

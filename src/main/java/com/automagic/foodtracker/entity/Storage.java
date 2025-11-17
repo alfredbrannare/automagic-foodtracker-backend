@@ -39,7 +39,7 @@ public class Storage {
 
     private double lowStockThreshold;
 
-    @CreationTimestamp
+    @Column(nullable = false)
     private Instant createdAt;
 
     @UpdateTimestamp
