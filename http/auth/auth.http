@@ -1,0 +1,42 @@
+### Login and capture tokens
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {%
+    // Get the headers (Java List)
+    const cookieHeaders = response.headers.valuesOf("Set-Cookie");
+
+    // Iterate manually because .find() does not exist on Java Lists
+    for (let i = 0; i < cookieHeaders.length; i++) {
+        const header = cookieHeaders[i];
+
+        // Look for access_token
+        if (header.includes("access_token=")) {
+            const token = header.split(';')[0].split('=')[1];
+            client.global.set("accessToken", token);
+            client.log("Access Token captured: " + token);
+        }
+
+        // Look for refresh_token
+        if (header.includes("refresh_token=")) {
+            const token = header.split(';')[0].split('=')[1];
+            client.global.set("refreshToken", token);
+        }
+    }
+%}
+
+### Refresh Token
+# @name refresh
+POST {{baseUrl}}/api/auth/refresh
+Content-Type: application/json
+Cookie: accessToken={{accessToken}}
+
+{
+  "refreshToken": "{{refreshToken}}"
+}

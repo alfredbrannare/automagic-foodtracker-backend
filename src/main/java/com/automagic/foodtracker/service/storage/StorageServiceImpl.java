@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,5 +40,28 @@ public class StorageServiceImpl implements StorageService {
     @Override
     public Collection<Storage> getStorage(String userId123) {
         return storageRepository.findByUserId(userId123);
+    }
+
+    public Storage updateConsumedWeight(String userId, String storageId, double consumedWeight) {
+        Optional<Storage> existing = storageRepository.findByIdAndUserId(storageId, userId);
+
+        if (existing.isEmpty()) {
+            throw new StorageNotFoundException(storageId, userId);
+        }
+
+        if (consumedWeight > existing.get().getTotalWeight()) {
+            throw new BadStorageRequestException("Consumed weight cannot be greater than total weight");
+        }
+
+        if (consumedWeight < 0) {
+            throw new BadStorageRequestException("Consumed weight cannot be negative");
+        }
+
+        if (consumedWeight == 0) {
+            return existing.get();
+        }
+
+        existing.get().setConsumedWeight(existing.get().getConsumedWeight() + consumedWeight);
+        return storageRepository.save(existing.get());
     }
 }

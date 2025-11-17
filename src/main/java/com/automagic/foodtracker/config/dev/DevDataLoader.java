@@ -29,6 +29,11 @@ public class DevDataLoader {
             System.out.println("Loading test data...");
 
             //Users
+            if (userRepository.findByUsername("user").isPresent()) {
+                System.out.println("Test data already exists. Skipping...");
+                return;
+            }
+
             User user = new User();
             user.setUsername("user");
             user.setEmail("user@user.com");

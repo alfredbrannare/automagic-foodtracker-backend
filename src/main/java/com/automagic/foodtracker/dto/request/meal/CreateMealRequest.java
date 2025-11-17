@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.dto.request.meal;
 
 import com.automagic.foodtracker.entity.Nutrition;
+import com.automagic.foodtracker.validation.ValidMealRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -12,13 +13,13 @@ import java.time.Instant;
 @Getter
 @Builder
 public class CreateMealRequest {
-    @NotBlank
+    @NotBlank(message = "Name is required")
     private String name;
 
+    @NotNull(message = "Weight is required")
     @Positive(message = "Weight must be positive")
     private double weight;
 
-    @NotNull(message = "Nutrition is required")
     private Nutrition nutrition;
 
     private String storageId;

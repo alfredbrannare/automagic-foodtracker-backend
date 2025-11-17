@@ -45,6 +45,9 @@ public class Storage {
     @UpdateTimestamp
     private Instant updatedAt;
 
+    @Column(nullable = false)
+    private boolean lowStock;
+
     //Helper Methods
     public double getRemainingWeight() {
         return totalWeight - consumedWeight;

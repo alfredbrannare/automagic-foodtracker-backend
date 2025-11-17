@@ -10,4 +10,5 @@ public interface StorageService {
     Nutrition getNutrition(String storageId, String userId);
     void deleteStorage(String userId, String storageId);
     Collection<Storage> getStorage(String userId123);
+    Storage updateConsumedWeight(String userId, String storageId, double consumedWeight);
 }

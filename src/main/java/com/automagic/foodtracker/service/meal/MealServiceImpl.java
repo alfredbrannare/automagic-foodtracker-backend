@@ -3,6 +3,7 @@ package com.automagic.foodtracker.service.meal;
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
+import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,20 @@ public class MealServiceImpl implements MealService {
     @Override
     public Meal registerMeal(String userId, Meal meal) {
         meal.setUserId(userId);
+
+        if (meal.getStorageId() != null) {
+            Nutrition nutrition = storageService.getNutrition(meal.getStorageId(), userId);
+            meal.setNutrition(nutrition.scale(meal.getWeight()));
+            storageService.updateConsumedWeight(userId, meal.getStorageId(), meal.getWeight());
+        }
+
+        if (meal.getConsumedAt() == null) {
+            meal.setConsumedAt(Instant.now());
+        }
+
+        if (meal.getNutrition() == null) {
+            throw new IllegalArgumentException("Nutrition cannot be null");
+        }
 
         return mealRepository.save(meal);
     }
