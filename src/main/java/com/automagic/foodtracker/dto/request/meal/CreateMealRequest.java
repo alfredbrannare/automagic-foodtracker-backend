@@ -1,7 +1,6 @@
 package com.automagic.foodtracker.dto.request.meal;
 
 import com.automagic.foodtracker.entity.Nutrition;
-import com.automagic.foodtracker.validation.ValidMealRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
