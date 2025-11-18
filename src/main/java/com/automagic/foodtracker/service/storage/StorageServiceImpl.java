@@ -38,8 +38,8 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public Collection<Storage> getStorage(String userId123) {
-        return storageRepository.findByUserId(userId123);
+    public Collection<Storage> getStorage(String userId) {
+        return storageRepository.findByUserId(userId);
     }
 
     public Storage updateConsumedWeight(String userId, String storageId, double consumedWeight) {

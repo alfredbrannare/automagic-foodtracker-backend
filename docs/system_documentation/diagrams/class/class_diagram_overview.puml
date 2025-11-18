@@ -2,7 +2,7 @@
 left to right direction
 skinparam classAttributeIconSize 0
 
-' Entities
+' Entity
 class User {
     -id: String
     -username: String
@@ -11,30 +11,8 @@ class User {
     -createdAt: Instant
     -goals: Goals
     -role: String
-}
-
-class Goals {
-    -targetProtein: double
-    -targetCarbs: double
-    -targetFat: double
-    -targetCalories: double
-}
-
-class Meal {
-    -id: String
-    -userId: String
-    -storageId: String
-    -name: String
-    -weight: double
-    -nutrition: Nutrition
-    -consumedAt: Instant
-}
-
-class Nutrition {
-    -protein: double
-    -carbs: double
-    -fat: double
-    -calories: double
+    -meals: List<Meal>
+    -storages: List<Storage>
 }
 
 class Storage {
@@ -48,30 +26,95 @@ class Storage {
     -lowStockThreshold: double
     -createdAt: Instant
     -updatedAt: Instant
+    -lowStock: boolean
+}
+
+class Nutrition {
+    -protein: double
+    -carbs: double
+    -fat: double
+    -calories: double
+    +scale(weightInGrams: double): Nutrition
+    -round(value: double): double
+}
+
+class Meal {
+    -id: String
+    -userId: String
+    -storageId: String
+    -name: String
+    -weight: double
+    -nutrition: Nutrition
+    -consumedAt: Instant
+}
+
+class Goals {
+    -targetProtein: double
+    -targetCarbs: double
+    -targetFat: double
+    -targetCalories: double
 }
 
 ' Repositories
-interface UserRepository
-interface MealRepository
-interface StorageRepository
+interface JpaRepository<T, ID>
+
+interface UserRepository {
+    +findByUsername(username: String): Optional<User>
+    +findByEmail(email: String): Optional<User>
+    +existsByUsername(username: String): boolean
+    +existsByEmail(email: String): boolean
+}
+
+interface StorageRepository {
+    +findByUserId(userId: String): Collection<Storage>
+    +findByIdAndUserId(id: String, userId: String)
+    +countByUserId(userId: String): long
+}
+
+interface MealRepository {
+    +findByUserIdAndConsumedAtBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
+    +findByStorageId(storageId: String): Collection<Meal>
+    +findByUserIdAndStorageIdIsNull(storageId: String): Collection<Meal>
+    +countByUserIdAndConsumedAtBetween(userId: String, from: Instant, to: Instant): long
+}
 
 ' Services
 interface UserService {
-    createUser(name: String, email: String, password: String): User
-    findByUsername(username: String): User
-    verifyPassword(password: String, hashedPassword: String): boolean
-    usernameExists(username: String): boolean
-    emailExists(email: String): boolean
-    deleteUser(userId: String): void
-}
-
-class UserServiceImpl {
     +createUser(name: String, email: String, password: String): User
     +findByUsername(username: String): User
     +verifyPassword(password: String, hashedPassword: String): boolean
     +usernameExists(username: String): boolean
     +emailExists(email: String): boolean
     +deleteUser(userId: String): void
+    +findById(userId: String): User
+}
+
+class UserServiceImpl {
+    -userRepository: UserRepository
+    -passwordEncoder: PasswordEncoder
+    +createUser(name: String, email: String, password: String): User
+    +findByUsername(username: String): User
+    +verifyPassword(password: String, hashedPassword: String): boolean
+    +usernameExists(username: String): boolean
+    +emailExists(email: String): boolean
+    +deleteUser(userId: String): void
+}
+
+interface StorageService {
+    +registerStorage(userId: String, request: CreateStorageRequest): Storage
+    +getNutrition(storageId: String, userId: String): Nutrition
+    +deleteStorage(userId: String, storageId: String): void
+    +getStorage(userId: String): Collection<Storage>
+    +updateConsumedWeight(userId: String, storageId: String, consumedWeight: double): Storage
+}
+
+class StorageServiceImpl {
+    -storageRepository: StorageRepository
+    +registerStorage(userId: String, storage: Storage): Storage
+    +getNutrition(storageId: String, userId: String): Nutrition
+    +deleteStorage(userId: String, storageId: String): void
+    +getStorage(userId: String)
+    +updateConsumedWeight(userId: String, storageId: String, consumedWeight: double): Storage
 }
 
 interface MealService {
@@ -82,101 +125,213 @@ interface MealService {
 }
 
 class MealServiceImpl {
+    -mealRepository: MealRepository
+    -storageService: StorageService
     +registerMeal(userId: String, request: CreateMealRequest): Meal
     +getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
     +getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
     +deleteMeal(userId: String, mealId: String): void
 }
 
-interface StorageService {
-    registerStorage(userId: String, request: CreateStorageRequest): Storage
-    getNutrition(storageId: String, userId: String): Nutrition
-    deleteStorage(userId: String, storageId: String): void
-}
-
-class StorageServiceImpl {
-    +registerStorage(userId: String, request: CreateStorageRequest): Storage
-    +getNutrition(storageId: String, userId: String): Nutrition
-    +deleteStorage(userId: String, storageId: String): void
-}
-
 interface AuthService {
-    register(request: RegisterRequest): AuthResponse
-    login(request: LoginRequest): AuthResponse
-    deleteUser(userId: String): void
+    +register(request: RegisterRequest): AuthResponse
+    +login(request: LoginRequest): AuthResponse
+    +deleteUser(userId: String): void
+    +refreshToken(refreshToken: String): AuthResponse
 }
 
 class AuthServiceImpl {
+    -userService: UserService
+    -jwtUtil: JwtUtil
     +register(request: RegisterRequest): AuthResponse
     +login(request: LoginRequest): AuthResponse
     -generateAuthResponse(user: User): AuthResponse
     +deleteUser(userId: String): void
+    +refreshToken(refreshToken: String): AuthResponse
+    -generateAuthResponse(user: User): AuthResponse
 }
 
-' Security & Utilities
-class JwtUtil {
-    +generateToken(userId: String): String
-    +generateRefreshToken(userId: String): String
-    +extractUserId(token: String): String
-    +validateToken(token: String): boolean
+' DTOs - Request
+class LoginRequest {
+    -username: String
+    -password: String
 }
 
-class JwtAuthenticationFilter
+class RefreshRequest {
+    -refreshToken: String
+}
 
-interface PasswordEncoder
+class RegisterRequest {
+    username: String
+    password: String
+    email: String
+    goals: Goals
+}
 
-class SecurityConfig
+class CreateStorageRequest {
+    -name: String
+    -nutritionPer100g: Nutrition
+    -totalWeight: double
+    -weightPerMeal: double
+    -lowStockThreshold: double
+    -createdAt: Instant
+}
 
+class CreateMealRequest {
+    -name: String
+    -weight: double
+    -nutrition: Nutrition
+    -storageId: String
+    -consumedAt: Instant
+}
+
+' DTOs - Response
+class AuthResponse {
+    -accessToken: String
+    -refreshToken: String
+    -message: String
+}
+
+class MessageResponse {
+    -message: String
+}
+
+class StorageResponse {
+    -id: String
+    -name: String
+    -totalWeight: double
+    -consumedWeight: double
+    -weightPerMeal: double
+    -lowStockThreshold: double
+    -createdAt: Instant
+    -updatedAt: Instant
+    -lowStock: boolean
+}
+
+class MealResponse {
+    -id: String
+    -name: String
+    -weight: double
+    -consumedAt: Instant
+    -nutrition: Nutrition
+    -storageId: String
+}
+
+' Controllers
+class AuthenticationController {
+    -authService: AuthService
+    -jwtProperties: JwtProperties
+    -cookiesSecure: boolean
+    +register(request: RegisterRequest): ResponseEntity<MessageResponse>
+    +login(request: LoginRequest): ResponseEntity<MessageResponse>
+    +deleteUser(user: AuthenticatedUser): ResponseEntity<Void>
+    +logout(): ResponseEntity<MessageResponse>
+    +refreshToken(refreshToken: String): ResponseEntity<MessageResponse>
+    -buildCookieHeaders(accessToken: String, refreshToken: String): HttpHeaders
+    -buildCookie(name: String, value: String, maxAgeSeconds: long): ResponseCookie
+}
+
+class StorageController {
+    -storageService: StorageService
+    +addStorage(user: AuthenticatedUser, request: CreateStorageRequest): ResponseEntity<StorageResponse>
+    +deleteStorage(user: AuthenticatedUser, storageId: String): ResponseEntity<Void>
+    +getStorage(user: AuthenticatedUser): ResponseEntity<List<StorageResponse>>
+}
+
+class MealsController {
+    -mealService: MealService
+    +addMeal(user: AuthenticatedUser, request: CreateMealRequest): ResponseEntity<MealResponse>
+    +deleteMeal(user: AuthenticatedUser, mealId: String): ResponseEntity<Void>
+    +getMeals(user: AuthenticatedUser, date: LocalDate): ResponseEntity<List<MealResponse>>
+    +getDailyNutritionSummary(user: AuthenticatedUser, date: LocalDate): ResponseEntity<Nutrition>
+}
+
+' Mappers
+class MealMapper {
+    +{static} toEntity(request: CreateMealRequest): Meal
+    +{static} toResponse(meal: Meal): MealResponse
+}
+
+class StorageMapper {
+   +{static} toEntity(request: CreateStorageRequest): Storage
+   +{static} toResponse(storage: Storage): StorageResponse
+}
+
+' Config
 class JwtProperties {
     -secret: String
     -expiration: long
     -refreshExpiration: long
 }
 
-' Controllers
-class AuthenticationController
-class MealsController
-class StorageController
+interface PasswordEncoder
 
-' Service Relationships
-UserServiceImpl --> UserRepository
-UserServiceImpl --> PasswordEncoder
-MealServiceImpl --> MealRepository
-MealServiceImpl --> StorageService
-StorageServiceImpl --> StorageRepository
-AuthServiceImpl --> UserService
-AuthServiceImpl --> JwtUtil
+'Utilities
+class JwtUtil {
+    -jwtProperties: JwtProperties
+    -getSigningKey(): SecretKey
+    +generateToken(userId: String): String
+    +generateRefreshToken(userId: String): String
+    +extractUserId(token: String): String
+    +validateToken(token: String): boolean
+}
 
-' Controller Relationships
-AuthenticationController --> AuthService
-AuthenticationController --> JwtUtil
-AuthenticationController --> PasswordEncoder
-MealsController --> MealService
-StorageController --> StorageService
-
-' Security Relationships
-JwtAuthenticationFilter --> JwtUtil
-SecurityConfig --> JwtAuthenticationFilter
-SecurityConfig --> PasswordEncoder
-JwtUtil --> JwtProperties
-
-' Entity Associations
-User "1" -- "1" Goals
-Meal "1" -- "1" Nutrition
-Storage "1" -- "1" Nutrition
-
-' Implementation
+' Implementation Relationships
 UserServiceImpl ..|> UserService
-MealServiceImpl ..|> MealService
 StorageServiceImpl ..|> StorageService
+MealServiceImpl ..|> MealService
 AuthServiceImpl ..|> AuthService
 
-' Hidden links to force horizontal layout
-User -[hidden]->UserServiceImpl
-Meal -[hidden]->MealServiceImpl
-Storage -[hidden]->StorageServiceImpl
-UserServiceImpl -[hidden]->AuthenticationController
-MealServiceImpl -[hidden]->MealsController
-StorageServiceImpl -[hidden]->StorageController
+' Extends Relationships
+UserRepository -|> JpaRepository
+StorageRepository -|> JpaRepository
+MealRepository -|> JpaRepository
+
+' Entity Relationships
+User "1" *-- "1" Goals : contains
+Meal "1" *-- "1" Nutrition : contains
+Storage "1" *-- "1" Nutrition : contains
+
+' Controller Dependencies
+AuthenticationController --> AuthService
+StorageController --> StorageService
+MealsController --> MealService
+
+StorageController --> StorageMapper
+MealsController --> MealMapper
+
+AuthenticationController ..> RegisterRequest
+AuthenticationController ..> LoginRequest
+AuthenticationController ..> RefreshRequest
+AuthenticationController ..> MessageResponse
+AuthenticationController ..> AuthResponse
+AuthenticationController --> JwtProperties
+
+StorageController ..> CreateStorageRequest
+StorageController ..> StorageResponse
+
+MealsController ..> CreateMealRequest
+MealsController ..> MealResponse
+
+' Mapper Transformations
+MealMapper ..> CreateMealRequest : reads
+MealMapper ..> Meal : creates
+MealMapper ..> MealResponse : creates
+
+StorageMapper ..> CreateStorageRequest : reads
+StorageMapper ..> Storage : creates
+StorageMapper ..> StorageResponse : creates
+
+' Service Dependencies
+UserServiceImpl --> UserRepository
+StorageServiceImpl --> StorageRepository
+MealServiceImpl --> MealRepository
+AuthServiceImpl --> JwtUtil
+UserServiceImpl --> PasswordEncoder
+JwtUtil --> JwtProperties
+
+' Service to service calls
+MealServiceImpl --> StorageService : updates consumed weight
+AuthServiceImpl --> UserService : manages users
 
 @enduml
