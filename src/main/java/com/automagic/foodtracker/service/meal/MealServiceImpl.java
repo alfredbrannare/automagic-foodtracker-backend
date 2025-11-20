@@ -56,12 +56,18 @@ public class MealServiceImpl implements MealService {
 
     @Override
     public void deleteMeal(String userId, String mealId) {
-        mealRepository.findById(mealId).ifPresent(meal -> {
-            if (!meal.getUserId().equals(userId)) {
+        Meal existing = mealRepository.findById(mealId)
+                        .orElseThrow(() -> new RuntimeException("Meal not found"));
+
+            if (!existing.getUserId().equals(userId)) {
                 throw new AccessDeniedException("You are not allowed to delete this meal");
             }
-            mealRepository.delete(meal);
-        });
+
+            if (existing.getStorageId() != null) {
+                storageService.updateConsumedWeight(userId, existing.getStorageId(), -existing.getWeight());
+            }
+
+            mealRepository.delete(existing);
     }
 
     @Override

@@ -38,7 +38,7 @@ Cookie: access_token={{accessToken}}
 }
 
 ### Delete a meal
-DELETE {{baseUrl}}/api/meals/{{mealId}}
+DELETE {{baseUrl}}/api/meals/8d3a198e-117c-4b68-afac-5797d3347107
 Cookie: access_token={{accessToken}}
 
 ### Update a meal
