@@ -33,3 +33,20 @@ Cookie: access_token={{accessToken}}
 ### Delete a meal
 DELETE {{baseUrl}}/api/meals/{{mealId}}
 Cookie: access_token={{accessToken}}
+
+### Update a meal
+PUT {{baseUrl}}/api/meals/be814864-a552-47ba-8bf0-d31341548c54
+Content-Type: application/json
+Cookie: access_token={{accessToken}}
+
+{
+  "name": "Test",
+  "weight": 150,
+  "nutrition": {
+    "protein": 30.0,
+    "carbs": 150.0,
+    "fat": 0.0,
+    "kcal": 35.0
+  },
+  "consumedAt": "2025-11-17T12:00:00Z"
+}

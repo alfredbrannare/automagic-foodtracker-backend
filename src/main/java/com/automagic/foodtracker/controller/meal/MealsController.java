@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.controller.meal;
 
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
+import com.automagic.foodtracker.dto.request.meal.UpdateMealRequest;
 import com.automagic.foodtracker.dto.response.meal.MealResponse;
 import com.automagic.foodtracker.entity.Meal;
 import com.automagic.foodtracker.entity.Nutrition;
@@ -62,6 +63,20 @@ public class MealsController {
                 .stream()
                 .map(MealMapper::toResponse)
                 .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping("/{mealId}")
+    public ResponseEntity<MealResponse> updateMeal(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @PathVariable String mealId,
+            @Valid @RequestBody UpdateMealRequest request
+    ) {
+
+        Meal meal = MealMapper.toEntity(mealId, request);
+        Meal saved = mealService.updateMeal(user.getUserId(), meal);
+        MealResponse response = MealMapper.toResponse(saved);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

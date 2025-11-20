@@ -42,26 +42,34 @@ public class StorageServiceImpl implements StorageService {
         return storageRepository.findByUserId(userId);
     }
 
-    public Storage updateConsumedWeight(String userId, String storageId, double consumedWeight) {
+    @Override
+    public Storage getStorageById(String userId, String storageId) {
+        return storageRepository.findByIdAndUserId(storageId, userId)
+                .orElseThrow(() -> new StorageNotFoundException(storageId, userId));
+    }
+
+    public Storage updateConsumedWeight(String userId, String storageId, double weightChange) {
         Optional<Storage> existing = storageRepository.findByIdAndUserId(storageId, userId);
 
         if (existing.isEmpty()) {
             throw new StorageNotFoundException(storageId, userId);
         }
 
-        if (consumedWeight > existing.get().getTotalWeight()) {
+        double newConsumedWeight = existing.get().getConsumedWeight() + weightChange;
+
+        if (newConsumedWeight > existing.get().getTotalWeight()) {
             throw new BadStorageRequestException("Consumed weight cannot be greater than total weight");
         }
 
-        if (consumedWeight < 0) {
+        if (newConsumedWeight < 0) {
             throw new BadStorageRequestException("Consumed weight cannot be negative");
         }
 
-        if (consumedWeight == 0) {
+        if (weightChange == 0) {
             return existing.get();
         }
 
-        existing.get().setConsumedWeight(existing.get().getConsumedWeight() + consumedWeight);
+        existing.get().setConsumedWeight(newConsumedWeight);
         return storageRepository.save(existing.get());
     }
 }

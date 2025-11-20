@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.mapper.meal;
 
 import com.automagic.foodtracker.dto.request.meal.CreateMealRequest;
+import com.automagic.foodtracker.dto.request.meal.UpdateMealRequest;
 import com.automagic.foodtracker.dto.response.meal.MealResponse;
 import com.automagic.foodtracker.entity.Meal;
 
@@ -23,6 +24,34 @@ public class MealMapper {
 
         if (request.getStorageId() != null) {
             meal.setStorageId(request.getStorageId());
+        }
+
+        return meal;
+    }
+
+    public static Meal toEntity(String mealId, UpdateMealRequest request) {
+        Meal meal = new Meal();
+
+        meal.setId(mealId);
+
+        if (request.getName() != null) {
+            meal.setName(request.getName());
+        }
+
+        if (request.getWeight() > 0.0) {
+            meal.setWeight(request.getWeight());
+        }
+
+        if (request.getNutrition() != null) {
+            meal.setNutrition(request.getNutrition());
+        }
+
+        if (request.getStorageId() != null) {
+            meal.setStorageId(request.getStorageId());
+        }
+
+        if (request.getConsumedAt() != null) {
+            meal.setConsumedAt(request.getConsumedAt());
         }
 
         return meal;

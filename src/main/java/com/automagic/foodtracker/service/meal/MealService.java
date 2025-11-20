@@ -12,4 +12,5 @@ public interface MealService {
     Collection<Meal> getMealsForUserBetween(String userId, Instant from, Instant to);
     Nutrition getDailyNutrition(String userId, Instant from, Instant to);
     void deleteMeal(String userId, String mealId);
+    Meal updateMeal(String userId, Meal meal);
 }

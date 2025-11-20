@@ -68,4 +68,53 @@ public class MealServiceImpl implements MealService {
             mealRepository.delete(meal);
         });
     }
+
+    @Override
+    public Meal updateMeal(String userId, Meal updates) {
+        Meal existing = mealRepository.findById(updates.getId())
+                .orElseThrow(() -> new RuntimeException("Meal not found"));
+
+        if (!existing.getUserId().equals(userId)) {
+            throw new AccessDeniedException("You are not allowed to update this meal");
+        }
+
+        String existingStorageId = existing.getStorageId();
+        double existingWeight = existing.getWeight();
+        String newStorageId = updates.getStorageId();
+        double newWeight = updates.getWeight();
+
+        existing.setWeight(newWeight);
+        existing.setConsumedAt(updates.getConsumedAt());
+
+        if (newStorageId != null) {
+            Storage storage = storageService.getStorageById(userId, newStorageId);
+            existing.setName(storage.getName());
+            existing.setNutrition(storage.getNutritionPer100g().scale(newWeight));
+        }
+        else {
+            existing.setName(updates.getName());
+            existing.setNutrition(updates.getNutrition().scale(existingWeight));
+        }
+
+        if (existingStorageId == null && newStorageId != null) {
+            storageService.updateConsumedWeight(userId, newStorageId, newWeight);
+        }
+        else if (existingStorageId != null && newStorageId == null) {
+            storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
+        }
+        else if (existingStorageId != null && newStorageId != null) {
+            if (!existingStorageId.equals(newStorageId)) {
+                storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
+                storageService.updateConsumedWeight(userId, newStorageId, newWeight);
+            }
+            else if (newWeight != existingWeight) {
+                double weightDifference = newWeight - existingWeight;
+                storageService.updateConsumedWeight(userId, newStorageId, weightDifference);
+            }
+        }
+
+        existing.setStorageId(newStorageId);
+        return mealRepository.save(existing);
+    }
+
 }
