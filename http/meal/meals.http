@@ -8,7 +8,7 @@ Content-Type: application/json
 Cookie: access_token={{accessToken}}
 
 {
-  "name": "Chicken Breast",
+  "name": "New Meal 1",
   "weight": 200.0,
   "nutrition": {
     "protein": 30.0,
@@ -25,9 +25,16 @@ Content-Type: application/json
 Cookie: access_token={{accessToken}}
 
 {
-  "name": "Chicken",
-  "weight": 1600.0,
-  "storageId": "33bab899-2c9f-4339-8d37-dd8118d70ef4"
+  "name": "New Meal 2",
+  "weight": 200.0,
+  "nutrition": {
+    "protein": 30.0,
+    "carbs": 0.0,
+    "fat": 5.0,
+    "kcal": 165.0
+  },
+  "consumedAt": "2025-11-17T12:00:00Z",
+  "storageId": "e9014365-839a-470d-9023-f0161f866284"
 }
 
 ### Delete a meal
@@ -48,5 +55,6 @@ Cookie: access_token={{accessToken}}
     "fat": 0.0,
     "kcal": 35.0
   },
-  "consumedAt": "2025-11-17T12:00:00Z"
+  "consumedAt": "2025-11-17T12:00:00Z",
+  "storageId": "e9014365-839a-470d-9023-f0161f866284"
 }

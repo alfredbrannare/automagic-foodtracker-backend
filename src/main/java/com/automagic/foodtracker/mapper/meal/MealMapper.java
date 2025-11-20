@@ -13,13 +13,12 @@ public class MealMapper {
         Meal meal = new Meal();
         meal.setName(request.getName());
         meal.setWeight(request.getWeight());
-
-        if (request.getNutrition() != null) {
-        meal.setNutrition(request.getNutrition());
-        }
+        meal.setNutrition(request.getNutrition().scale(request.getWeight()));
 
         if (request.getConsumedAt() != null) {
             meal.setConsumedAt(request.getConsumedAt());
+        } else  {
+            meal.setConsumedAt(Instant.now());
         }
 
         if (request.getStorageId() != null) {

@@ -38,17 +38,12 @@ public class MealServiceImpl implements MealService {
         meal.setUserId(userId);
 
         if (meal.getStorageId() != null) {
-            Nutrition nutrition = storageService.getNutrition(meal.getStorageId(), userId);
-            meal.setNutrition(nutrition.scale(meal.getWeight()));
-            storageService.updateConsumedWeight(userId, meal.getStorageId(), meal.getWeight());
-        }
+            Storage storage = storageService.getStorageById(userId, meal.getStorageId());
 
-        if (meal.getConsumedAt() == null) {
-            meal.setConsumedAt(Instant.now());
-        }
+            meal.setName(storage.getName());
+            meal.setNutrition(storage.getNutritionPer100g().scale(meal.getWeight()));
 
-        if (meal.getNutrition() == null) {
-            throw new IllegalArgumentException("Nutrition cannot be null");
+            storageService.updateConsumedWeight(userId, storage.getId(), meal.getWeight());
         }
 
         return mealRepository.save(meal);

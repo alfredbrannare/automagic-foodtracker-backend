@@ -19,8 +19,9 @@ public class CreateMealRequest {
     @Positive(message = "Weight must be positive")
     private double weight;
 
+    @NotNull(message = "Nutrition is required")
     private Nutrition nutrition;
 
-    private String storageId;
     private Instant consumedAt;
+    private String storageId;
 }
