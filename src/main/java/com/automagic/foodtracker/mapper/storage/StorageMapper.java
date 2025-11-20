@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.mapper.storage;
 
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
+import com.automagic.foodtracker.dto.request.storage.UpdateStorageRequest;
 import com.automagic.foodtracker.dto.response.storage.StorageResponse;
 import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.exception.storage.BadStorageRequestException;
@@ -30,6 +31,27 @@ public class StorageMapper {
         } else {
             storage.setCreatedAt(Instant.now());
         }
+
+        return storage;
+    }
+
+    public static Storage toEntity(String storageId, UpdateStorageRequest request) {
+        if (request.getLowStockThreshold() > request.getTotalWeight()) {
+            throw new BadStorageRequestException("Low stock threshold cannot be greater than total weight");
+        }
+
+        if (request.getWeightPerMeal() > request.getTotalWeight()) {
+            throw new BadStorageRequestException("Weight per meal cannot be greater than total weight");
+        }
+
+        Storage storage = new Storage();
+        storage.setId(storageId);
+        storage.setName(request.getName());
+        storage.setNutritionPer100g(request.getNutritionPer100g());
+        storage.setTotalWeight(request.getTotalWeight());
+        storage.setWeightPerMeal(request.getWeightPerMeal());
+        storage.setLowStockThreshold(request.getLowStockThreshold());
+        storage.setCreatedAt(request.getCreatedAt());
 
         return storage;
     }

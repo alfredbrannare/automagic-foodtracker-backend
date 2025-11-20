@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.controller.storage;
 
 import com.automagic.foodtracker.dto.request.storage.CreateStorageRequest;
+import com.automagic.foodtracker.dto.request.storage.UpdateStorageRequest;
 import com.automagic.foodtracker.dto.response.storage.StorageResponse;
 import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.mapper.storage.StorageMapper;
@@ -47,10 +48,25 @@ public class StorageController {
     public ResponseEntity<List<StorageResponse>> getStorage(
             @AuthenticationPrincipal AuthenticatedUser user
     ) {
+
         List<StorageResponse> response = storageService.getStorage(user.getUserId())
                 .stream()
                 .map(StorageMapper::toResponse)
                 .toList();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping("/{storageId}")
+    public ResponseEntity<StorageResponse> updateStorage(
+            @AuthenticationPrincipal AuthenticatedUser user,
+            @PathVariable String storageId,
+            @Valid @RequestBody UpdateStorageRequest request
+    ) {
+
+        Storage storage = StorageMapper.toEntity(storageId, request);
+        storageService.updateStorage(user.getUserId(), storage);
+        StorageResponse response = StorageMapper.toResponse(storage);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

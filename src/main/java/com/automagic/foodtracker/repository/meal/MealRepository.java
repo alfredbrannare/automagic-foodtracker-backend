@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 
 @Repository
 public interface MealRepository extends JpaRepository<Meal, String> {
@@ -13,4 +14,5 @@ public interface MealRepository extends JpaRepository<Meal, String> {
     Collection<Meal> findByStorageId(String storageId);
     Collection<Meal> findByUserIdAndStorageIdIsNull(String userId);
     long countByUserIdAndConsumedAtBetween(String userId, Instant from, Instant to);
+    List<Meal> findByUserIdAndStorageIdAndConsumedAtAfter(String userId, String storageId, Instant date);
 }

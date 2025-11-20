@@ -17,7 +17,7 @@ public class MealMapper {
 
         if (request.getConsumedAt() != null) {
             meal.setConsumedAt(request.getConsumedAt());
-        } else  {
+        } else {
             meal.setConsumedAt(Instant.now());
         }
 
@@ -32,26 +32,11 @@ public class MealMapper {
         Meal meal = new Meal();
 
         meal.setId(mealId);
-
-        if (request.getName() != null) {
-            meal.setName(request.getName());
-        }
-
-        if (request.getWeight() > 0.0) {
-            meal.setWeight(request.getWeight());
-        }
-
-        if (request.getNutrition() != null) {
-            meal.setNutrition(request.getNutrition());
-        }
-
-        if (request.getStorageId() != null) {
-            meal.setStorageId(request.getStorageId());
-        }
-
-        if (request.getConsumedAt() != null) {
-            meal.setConsumedAt(request.getConsumedAt());
-        }
+        meal.setName(request.getName());
+        meal.setWeight(request.getWeight());
+        meal.setNutrition(request.getNutrition());
+        meal.setStorageId(request.getStorageId());
+        meal.setConsumedAt(request.getConsumedAt());
 
         return meal;
     }

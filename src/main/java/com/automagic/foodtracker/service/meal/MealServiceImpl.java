@@ -7,20 +7,29 @@ import com.automagic.foodtracker.entity.Storage;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 
 import static java.lang.Math.round;
 
 @Service
-@RequiredArgsConstructor
 public class MealServiceImpl implements MealService {
     private final MealRepository mealRepository;
     private final StorageService storageService;
 
+    public MealServiceImpl(MealRepository mealRepository, @Lazy StorageService storageService) {
+        this.mealRepository = mealRepository;
+        this.storageService = storageService;
+    }
+
+    @Transactional(readOnly = true)
     @Override
     public Nutrition getDailyNutrition(String userId, Instant from, Instant to) {
         Collection<Meal> meals = mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
@@ -33,6 +42,7 @@ public class MealServiceImpl implements MealService {
         return new Nutrition(round(totalProtein), round(totalCarbs), round(totalFat), round(totalKcal));
     }
 
+    @Transactional
     @Override
     public Meal registerMeal(String userId, Meal meal) {
         meal.setUserId(userId);
@@ -49,11 +59,13 @@ public class MealServiceImpl implements MealService {
         return mealRepository.save(meal);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Collection<Meal> getMealsForUserBetween(String userId, Instant from, Instant to) {
         return mealRepository.findByUserIdAndConsumedAtBetween(userId, from, to);
     }
 
+    @Transactional
     @Override
     public void deleteMeal(String userId, String mealId) {
         Meal existing = mealRepository.findById(mealId)
@@ -70,6 +82,7 @@ public class MealServiceImpl implements MealService {
             mealRepository.delete(existing);
     }
 
+    @Transactional
     @Override
     public Meal updateMeal(String userId, Meal updates) {
         Meal existing = mealRepository.findById(updates.getId())
@@ -116,6 +129,12 @@ public class MealServiceImpl implements MealService {
 
         existing.setStorageId(newStorageId);
         return mealRepository.save(existing);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Meal> findMealsByUserAndStorageSince(String userId, String storageId, Instant from) {
+        return mealRepository.findByUserIdAndStorageIdAndConsumedAtAfter(userId, storageId, from);
     }
 
 }

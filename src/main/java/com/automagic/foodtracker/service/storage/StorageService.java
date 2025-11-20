@@ -11,5 +11,6 @@ public interface StorageService {
     void deleteStorage(String userId, String storageId);
     Collection<Storage> getStorage(String userId);
     Storage getStorageById(String userId, String storageId);
+    Storage updateStorage(String userId, Storage storageId);
     Storage updateConsumedWeight(String userId, String storageId, double weightChange);
 }

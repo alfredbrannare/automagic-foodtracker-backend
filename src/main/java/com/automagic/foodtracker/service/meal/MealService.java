@@ -6,6 +6,7 @@ import com.automagic.foodtracker.entity.Nutrition;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 
 public interface MealService {
     Meal registerMeal(String userid, Meal meal);
@@ -13,4 +14,5 @@ public interface MealService {
     Nutrition getDailyNutrition(String userId, Instant from, Instant to);
     void deleteMeal(String userId, String mealId);
     Meal updateMeal(String userId, Meal meal);
+    List<Meal> findMealsByUserAndStorageSince(String userId, String storageId, Instant from);
 }

@@ -25,3 +25,21 @@ Cookie: access_token={{accessToken}}
 DELETE {{baseUrl}}/api/storage/f9bb69ad-7502-4374-ae64-88adc5a0a340
 Content-Type: application/json
 Cookie: access_token={{accessToken}}
+
+### Update a storage
+PUT {{baseUrl}}/api/storage/e9014365-839a-470d-9023-f0161f866284
+Content-Type: application/json
+Cookie: access_token={{accessToken}}
+
+{
+  "name": "Beef",
+  "totalWeight": "2000",
+  "weightPerMeal": "200",
+  "lowStockThreshold": "600",
+  "nutritionPer100g": {
+    "protein": 56,
+    "carbs": 0,
+    "fat": 15,
+    "kcal": 250
+  }
+}
