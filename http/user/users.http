@@ -1,0 +1,11 @@
+### Update goals
+PUT {{baseUrl}}/api/user/me/goals
+Content-Type: application/json
+Cookie: access_token={{accessToken}}
+
+{
+  "targetProtein": 150,
+  "targetCarbs": 50,
+  "targetFat": 10,
+  "tagetCalories": 2000
+}

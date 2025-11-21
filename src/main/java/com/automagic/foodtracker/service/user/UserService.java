@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.service.user;
 
+import com.automagic.foodtracker.entity.Goals;
 import com.automagic.foodtracker.entity.User;
 
 public interface UserService {
@@ -10,4 +11,5 @@ public interface UserService {
     boolean emailExists(String email);
     void deleteUser(String userId);
     User findById(String userId);
+    Goals updateGoals(String userId, Goals goals);
 }

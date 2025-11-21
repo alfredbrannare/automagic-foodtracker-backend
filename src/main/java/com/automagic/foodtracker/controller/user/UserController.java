@@ -1,8 +1,12 @@
 package com.automagic.foodtracker.controller.user;
 
-import com.automagic.foodtracker.dto.request.user.UpdateGoalsRequest;
+import com.automagic.foodtracker.dto.request.user.UpdateUserGoalsRequest;
+import com.automagic.foodtracker.dto.response.user.UserGoalsResponse;
 import com.automagic.foodtracker.dto.response.user.UserResponse;
+import com.automagic.foodtracker.entity.Goals;
+import com.automagic.foodtracker.mapper.user.UserMapper;
 import com.automagic.foodtracker.security.AuthenticatedUser;
+import com.automagic.foodtracker.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +18,7 @@ import com.automagic.foodtracker.dto.request.user.UpdateUserRequest;
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getUser(
@@ -34,13 +39,16 @@ public class UserController {
     }
 
     @PutMapping("/me/goals")
-    public ResponseEntity<UserResponse> updateGoals(
+    public ResponseEntity<UserGoalsResponse> updateGoals(
             @AuthenticationPrincipal AuthenticatedUser user,
-            @Valid @RequestBody UpdateGoalsRequest request
+            @Valid @RequestBody UpdateUserGoalsRequest request
     ) {
 
-        user.getUserId();
-        return null;
+        Goals goals = UserMapper.toGoalsEntity(request);
+        userService.updateGoals(user.getUserId(), goals);
+        UserGoalsResponse response = UserMapper.toGoalsResponse(goals);
+
+        return ResponseEntity.ok().body(response);
     }
 
     @PutMapping("/me/password")
