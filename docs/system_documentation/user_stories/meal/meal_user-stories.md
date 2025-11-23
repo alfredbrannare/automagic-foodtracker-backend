@@ -11,6 +11,8 @@
 - Storage weight updates accordingly
 - Daily nutrition is updates accordingly
 
+---
+
 ## User Story 2: Log a custom/on-the-go meal
 **As a** user  
 **I want to** log a meal on the go  
@@ -23,6 +25,8 @@
     - Date (Optional)
 - Daily nutrition is updates accordingly
 
+---
+
 ## User Story 3: Delete a meal
 **As a** user  
 **I want to** delete a meal  
@@ -32,6 +36,8 @@
 - User can delete a meal from the log
 - Daily nutrition is updates accordingly
 
+---
+
 ## User Story 4: See daily nutrition
 **As a** user  
 **I want to** see my daily nutrition  
@@ -40,3 +46,16 @@
 **Acceptance Criteria:**
 - User can see their daily nutrition
 - It is calculated automatically
+
+---
+
+## User Story 5: Update logged meal
+**As a** user
+**I want to** update a logged meal
+**So that** I can correct mistakes or adjust portion sizes
+
+**Acceptance Criteria:**
+- User can edit name, weight, nutrition values, and consumption time
+- If meal is from storage: storage consumed weight is adjusted
+- Daily nutrition totals update automatically
+- Changes are saved immediately

@@ -1,19 +1,29 @@
 @startuml
 left to right direction
+skinparam packageStyle rectangle
 
-actor Frontend
+actor "User" as User
 
-rectangle "Backend Users Endpoint" {
-    (Register User)
-    (Login User)
+rectangle "Automagic Meal Prep Tracker" {
+
+  package "Authentication" {
+    usecase "Register Account" as UC_Reg
+    usecase "Login" as UC_Login
+    usecase "Logout" as UC_Logout
+    usecase "Delete Account" as UC_DelAcc
+  }
+
+  package "User Goals" {
+    usecase "Update Goals" as UC_Goals
+    usecase "View Progress" as UC_Prog
+  }
 }
 
-database "Database" as DB
-
-Frontend --> (Register User)
-Frontend --> (Login User)
-
-(Register User) --> DB : + upload / Users table
-(Login User) --> DB : + read / Users table
+User --> UC_Reg
+User --> UC_Login
+User --> UC_Logout
+User --> UC_DelAcc
+User --> UC_Goals
+User --> UC_Prog
 
 @enduml

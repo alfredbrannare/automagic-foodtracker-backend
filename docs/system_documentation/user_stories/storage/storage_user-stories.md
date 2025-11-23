@@ -32,3 +32,28 @@
 - User can see the remaining weight of the storage items
 - User can see when items were added to storage
 
+---
+
+## User Story 4: Update storage item
+**As a** user
+**I want to** update a storage item
+**So that** I can correct misinputs or add more meal prep
+
+**Acceptance Criteria:**
+- User can edit name, total weight, nutrition values, weight per meal, and threshold
+- Consumed weight is preserved
+- System recalculates remaining weight, meals remaining, and low stock status
+- Changes are saved immediately
+
+---
+
+## User Story 5: Receive low stock warning
+**As a** user
+**I want to** be warned when a storage item is running low
+**So that** I know when it's time to meal prep again
+
+**Acceptance Criteria:**
+- Storage items with remaining weight ≤ threshold are marked as "low stock"
+- Low stock items are visually distinct (color)
+- Warning appears in storage list view
+- Warning updates automatically as meals are logged

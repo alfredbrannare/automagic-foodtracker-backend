@@ -1,25 +1,44 @@
 @startuml
 left to right direction
+skinparam packageStyle rectangle
 
-actor Frontend
+actor "User" as User
 
-rectangle "Backend Meal Endpoint" {
-    (Log Meal from Storage)
-    (Log Custom Meal)
-    (Delete Meal)
-    (See Daily Nutrition)
+rectangle "Meal & Nutrition System" {
+
+  package "Meal Logging" {
+    usecase "Log Meal from Storage" as UC_LogStore
+    usecase "Log Custom Meal" as UC_LogCustom
+    usecase "View Meal History" as UC_History
+    usecase "Update Meal" as UC_UpdMeal
+    usecase "Delete Meal" as UC_DelMeal
+  }
+
+  package "Nutrition & Logic" {
+    usecase "Calculate Nutrition" as UC_Calc
+    usecase "View Daily Nutrition" as UC_Daily
+    usecase "Update Storage Quantity" as UC_UpdStoreQty
+  }
 }
 
-database "Database" as DB
+' User Actions
+User --> UC_LogStore
+User --> UC_LogCustom
+User --> UC_History
+User --> UC_Daily
 
-Frontend --> (Log Meal from Storage)
-Frontend --> (Log Custom Meal)
-Frontend --> (Delete Meal)
-Frontend --> (See Daily Nutrition)
+' Logic Relationships
+UC_LogStore ..> UC_Calc : <<include>>
+UC_LogStore ..> UC_UpdStoreQty : <<include>>
+UC_Daily ..> UC_Calc : <<include>>
 
-(Log Meal from Storage) --> DB : + upload / Meals table
-(Log Custom Meal) --> DB : + upload / Meals table
-(Delete Meal) --> DB : + delete / Meals table
-(See Daily Nutrition) --> DB : + read / Meals table
+' Extensions (Actions from history)
+UC_History <.. UC_UpdMeal : <<extend>>
+UC_History <.. UC_DelMeal : <<extend>>
+
+note right of UC_UpdStoreQty
+  Reduces consumed weight
+  from storage inventory
+end note
 
 @enduml
