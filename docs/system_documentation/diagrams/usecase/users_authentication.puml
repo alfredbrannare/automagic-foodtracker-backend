@@ -4,19 +4,12 @@ skinparam packageStyle rectangle
 
 actor "User" as User
 
-rectangle "Automagic Meal Prep Tracker" {
-
-  package "Authentication" {
+rectangle "Authentication & Settings" {
     usecase "Register Account" as UC_Reg
     usecase "Login" as UC_Login
     usecase "Logout" as UC_Logout
     usecase "Delete Account" as UC_DelAcc
-  }
-
-  package "User Goals" {
-    usecase "Update Goals" as UC_Goals
-    usecase "View Progress" as UC_Prog
-  }
+    usecase "Update Nutritional Goals" as UC_Goals
 }
 
 User --> UC_Reg
@@ -24,6 +17,5 @@ User --> UC_Login
 User --> UC_Logout
 User --> UC_DelAcc
 User --> UC_Goals
-User --> UC_Prog
 
 @enduml

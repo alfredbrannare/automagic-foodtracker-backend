@@ -4,12 +4,14 @@ skinparam packageStyle rectangle
 
 actor "User" as User
 
-rectangle "Storage System" {
+rectangle "Storage Logging" {
     usecase "Add Storage Item" as UC_Add
-    usecase "View Storage List" as UC_List
+    usecase "View Storage Log" as UC_List
     usecase "Update Storage Item" as UC_Update
     usecase "Delete Storage Item" as UC_Delete
-    usecase "Check Low Stock" as UC_Check
+
+    usecase "Check Low Stock Status" as UC_Check
+    usecase "Calculate Remaining Weight" as UC_CalcWeight
 }
 
 User --> UC_Add
@@ -17,12 +19,8 @@ User --> UC_List
 User --> UC_Update
 User --> UC_Delete
 
-' System logic
 UC_List ..> UC_Check : <<include>>
-
-note right of UC_Check
-  Automatically checks if
-  remainingWeight <= threshold
-end note
+UC_List ..> UC_CalcWeight : <<include>>
+UC_Update ..> UC_CalcWeight : <<include>>
 
 @enduml

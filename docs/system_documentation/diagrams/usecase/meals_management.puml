@@ -6,7 +6,7 @@ actor "User" as User
 
 rectangle "Meal & Nutrition System" {
 
-  package "Meal Logging" {
+  package "Meal Logging (Epic 3)" {
     usecase "Log Meal from Storage" as UC_LogStore
     usecase "Log Custom Meal" as UC_LogCustom
     usecase "View Meal History" as UC_History
@@ -14,31 +14,29 @@ rectangle "Meal & Nutrition System" {
     usecase "Delete Meal" as UC_DelMeal
   }
 
-  package "Nutrition & Logic" {
-    usecase "Calculate Nutrition" as UC_Calc
+  package "Nutritional Tracking (Epic 4)" {
     usecase "View Daily Nutrition" as UC_Daily
-    usecase "Update Storage Quantity" as UC_UpdStoreQty
+    usecase "Compare vs Goals" as UC_CompGoals
+  }
+
+  package "System Actions" {
+    usecase "Update Storage Consumed Weight" as UC_UpdStoreQty
   }
 }
 
-' User Actions
 User --> UC_LogStore
 User --> UC_LogCustom
 User --> UC_History
 User --> UC_Daily
 
-' Logic Relationships
-UC_LogStore ..> UC_Calc : <<include>>
-UC_LogStore ..> UC_UpdStoreQty : <<include>>
-UC_Daily ..> UC_Calc : <<include>>
 
-' Extensions (Actions from history)
+UC_LogStore ..> UC_UpdStoreQty : <<include>>
+
+UC_Daily ..> UC_CompGoals : <<include>>
+
 UC_History <.. UC_UpdMeal : <<extend>>
 UC_History <.. UC_DelMeal : <<extend>>
 
-note right of UC_UpdStoreQty
-  Reduces consumed weight
-  from storage inventory
-end note
+UC_DelMeal ..> UC_UpdStoreQty : <<include>>
 
 @enduml
