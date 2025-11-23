@@ -9,9 +9,10 @@
 
 **Preconditions:**
 - The user is authenticated (valid JWT).
+- The storage item exists and belongs to the user.
 
 **Main Flow:**
-1. Frontend sends a `POST /storage` request with item data.
+1. Frontend sends a `POST /api/storage` request with item data.
 2. Backend validates JWT and extracts user ID.
 3. Backend validates input (name, weight, nutrition values, date (optional)).
 4. Backend saves the storage item in the database.
@@ -25,10 +26,6 @@
 - Missing or invalid JWT → return `401 Unauthorized`.
 - Invalid input → return `400 Bad Request`.
 
-**Related Use Cases:**
-- View Storage Log
-- Delete Storage Item
-
 ---
 
 ## Use Case 2: Delete Storage Item
@@ -41,7 +38,7 @@
 - The item exists and belongs to the user.
 
 **Main Flow:**
-1. Frontend sends a `DELETE /storage/{id}` request.
+1. Frontend sends a `DELETE /api/storage/{id}` request.
 2. Backend validates JWT and ownership of the item.
 3. Backend deletes the item from the database.
 4. Backend returns 204.
@@ -52,10 +49,6 @@
 **Alternative / Exception Flows:**
 - Item not found → return `404 Not Found`.
 - User does not own item → return `403 Forbidden`.
-
-**Related Use Cases:**
-- Log Storage Item
-- View Storage Log
 
 ---
 
@@ -68,7 +61,7 @@
 - The user is authenticated.
 
 **Main Flow:**
-1. Frontend sends a `GET /storage` request.
+1. Frontend sends a `GET /api/storage` request.
 2. Backend validates JWT and extracts user ID.
 3. Backend retrieves all storage items for the user.
 4. Backend calculates total and remaining weight.
@@ -81,6 +74,32 @@
 - Invalid JWT → return `401 Unauthorized`.
 - No items found → return empty list.
 
-**Related Use Cases:**
-- Log Storage Item
-- Delete Storage Item
+---
+
+## Use Case 4: Update Storage Item
+**Actor:** Frontend (triggered by User)
+**Scenario:** The user updates an existing storage item.
+**Trigger:** User edits a storage item and submits changes.
+
+**Preconditions:**
+- The user is authenticated.
+- The storage item exists and belongs to the user.
+
+**Main Flow:**
+1. Frontend sends a `PUT /api/storage/{id}` request with updated data.
+2. Backend validates JWT and ownership.
+3. Backend retrieves existing storage item.
+4. Backend updates all fields (except ID) with new values.
+5. Backend preserves consumed weight.
+6. Backend recalculates remaining weight and low stock status.
+7. Backend saves updated storage item.
+8. Backend returns updated storage item.
+
+**Postconditions:**
+- Storage item is updated in the database.
+- Low stock status is recalculated.
+
+**Alternative / Exception Flows:**
+- Storage item not found → return 404 Not Found.
+- User does not own item → return 403 Forbidden.
+- Invalid input → return 400 Bad Request.

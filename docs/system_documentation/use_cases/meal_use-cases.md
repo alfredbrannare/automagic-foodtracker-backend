@@ -12,26 +12,22 @@
 - The selected storage item exists.
 
 **Main Flow:**
-1. Frontend sends a `POST /meals` request with `storageId` and portion weight.
+1. Frontend sends a `POST /api/meals` request with `storageId` and portion weight.
 2. Backend validates JWT and user ownership.
 3. Backend retrieves the storage item from the database.
 4. Backend calculates nutrition for the given portion.
-5. Backend creates a meal record.
-6. Backend updates storage item’s remaining weight.
+5. Backend creates a meal.
+6. Backend updates storage item’s consumed weight.
 7. Backend returns success response with meal data.
 
 **Postconditions:**
 - Meal record is saved in the database.
-- Storage item’s weight is updated.
+- Storage item’s consumed weight is updated.
 - Daily nutrition totals are updated.
 
 **Alternative / Exception Flows:**
 - Storage item not found → return `404 Not Found`.
 - Invalid JWT → return `401 Unauthorized`.
-
-**Related Use Cases:**
-- Log On-the-Go Meal
-- View Daily Nutrition
 
 ---
 
@@ -44,23 +40,19 @@
 - The user is authenticated.
 
 **Main Flow:**
-1. Frontend sends a `POST /meals` request without `storageId`.
+1. Frontend sends a `POST /api/meals` request without `storageId`.
 2. Backend validates JWT and user ID.
 3. Backend validates manual input (name, nutrition, weight).
-4. Backend saves the meal record in the database.
+4. Backend saves the meal in the database.
 5. Backend returns success response with meal data.
 
 **Postconditions:**
-- Meal record is stored in the database.
+- Meal is stored in the database.
 - Daily nutrition totals are updated.
 
 **Alternative / Exception Flows:**
 - Invalid JWT → return `401 Unauthorized`.
 - Invalid input → return `400 Bad Request`.
-
-**Related Use Cases:**
-- Log Meal from Storage
-- View Daily Nutrition
 
 ---
 
@@ -74,22 +66,18 @@
 - The meal exists and belongs to the user.
 
 **Main Flow:**
-1. Frontend sends a `DELETE /meals/{id}` request.
+1. Frontend sends a `DELETE /api/meals/{id}` request.
 2. Backend validates JWT and ownership.
-3. Backend deletes the meal record.
+3. Backend deletes the meal. If meal is from storage: Backend updates storage's consumed weight.
 4. Backend returns success confirmation.
 
 **Postconditions:**
-- Meal record is removed from the database.
+- Meal is removed from the database.
 - Daily nutrition totals are updated.
 
 **Alternative / Exception Flows:**
 - Meal not found → return `404 Not Found`.
 - User not owner → return `403 Forbidden`.
-
-**Related Use Cases:**
-- Log Meal from Storage
-- View Daily Nutrition
 
 ---
 
@@ -103,7 +91,7 @@
 - Meals have been logged.
 
 **Main Flow:**
-1. Frontend sends a `GET /meals/nutrition?date=...` request.
+1. Frontend sends a `GET /api/meals/nutrition?date=...` request.
 2. Backend validates JWT and extracts user ID.
 3. Backend converts date to from and to Instant.
 4. Backend aggregates nutrition data for the date range.
@@ -116,7 +104,33 @@
 - Invalid JWT → return `401 Unauthorized`.
 - No meals found → return zero totals.
 
-**Related Use Cases:**
-- Log Meal from Storage
-- Log On-the-Go Meal
-- Delete Meal
+---
+
+## Use Case: Update Meal
+**Actor:** Frontend (triggered by User)
+**Scenario:** The user updates a logged meal.
+**Trigger:** User edits a meal entry and submits changes.
+
+**Preconditions:**
+- The user is authenticated.
+- The meal exists and belongs to the user.
+
+**Main Flow:**
+1. Frontend sends a `PUT /api/meals/{id}` request with updated data.
+2. Backend validates JWT and ownership.
+3. Backend retrieves existing meal.
+4. If meal is from storage:
+   a. Backend calculates weight difference.
+   b. Backend updates storage's consumed weight.
+   c. Backend recalculates storage's low stock status.
+5. Backend updates meal fields.
+6. Backend saves updated meal.
+7. Backend returns updated meal.
+
+**Postconditions:**
+- Meal is updated in the database.
+- If from storage: storage consumed weight is adjusted.
+
+**Alternative / Exception Flows:**
+- Meal not found → return 404 Not Found.
+- User does not own meal → return 403 Forbidden.
