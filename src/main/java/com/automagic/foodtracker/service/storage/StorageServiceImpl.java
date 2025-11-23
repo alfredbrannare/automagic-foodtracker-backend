@@ -51,7 +51,7 @@ public class StorageServiceImpl implements StorageService {
         Storage existing = storageRepository.findByIdAndUserId(storageId, userId)
                 .orElseThrow(() -> new StorageNotFoundException(storageId, userId));
 
-        if (existing.getUserId() != userId) {
+        if (!existing.getUserId().equals(userId)) {
             throw new BadStorageRequestException("You are not allowed to delete this storage");
         }
 

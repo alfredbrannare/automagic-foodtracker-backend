@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.dto.request.storage;
 
 import com.automagic.foodtracker.entity.Nutrition;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,4 +27,14 @@ public class UpdateStorageRequest {
     private double lowStockThreshold;
 
     private Instant createdAt;
+
+    @AssertTrue(message = "Low stock threshold cannot be greater than total weight")
+    private boolean isThresholdValid() {
+        return lowStockThreshold <= totalWeight;
+    }
+
+    @AssertTrue(message = "Weight per meal cannot be greater than total weight")
+    private boolean isMealWeightValid() {
+        return weightPerMeal <= totalWeight;
+    }
 }

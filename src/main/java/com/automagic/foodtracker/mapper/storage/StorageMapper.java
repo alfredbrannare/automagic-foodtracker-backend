@@ -11,14 +11,6 @@ import java.time.Instant;
 public class StorageMapper {
 
     public static Storage toEntity(CreateStorageRequest request) {
-        if (request.getLowStockThreshold() > request.getTotalWeight()) {
-            throw new BadStorageRequestException("Low stock threshold cannot be greater than total weight");
-        }
-
-        if (request.getWeightPerMeal() > request.getTotalWeight()) {
-            throw new BadStorageRequestException("Weight per meal cannot be greater than total weight");
-        }
-
         Storage storage = new Storage();
         storage.setName(request.getName());
         storage.setNutritionPer100g(request.getNutritionPer100g());
@@ -65,7 +57,13 @@ public class StorageMapper {
                 .weightPerMeal(storage.getWeightPerMeal())
                 .lowStockThreshold(storage.getLowStockThreshold())
                 .createdAt(storage.getCreatedAt())
+
+                .remainingWeight(storage.getRemainingWeight())
+                .mealsLeft(storage.getMealsLeft())
+                .progressPercentage(storage.getProgressPercentage())
+
                 .lowStock(storage.isLowStock())
+
                 .build();
     }
 }

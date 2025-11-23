@@ -20,5 +20,9 @@ public class StorageResponse {
     private double lowStockThreshold;
     private Instant createdAt;
     private Instant updatedAt;
+
+    private double remainingWeight;
+    private double mealsLeft;
+    private double progressPercentage;
     private boolean lowStock;
 }

@@ -27,7 +27,7 @@ Content-Type: application/json
 Cookie: access_token={{accessToken}}
 
 ### Update a storage
-PUT {{baseUrl}}/api/storage/e9014365-839a-470d-9023-f0161f866284
+PUT {{baseUrl}}/api/storage/b9f2e1fd-7d90-4864-8079-c46f05dfea78
 Content-Type: application/json
 Cookie: access_token={{accessToken}}
 
