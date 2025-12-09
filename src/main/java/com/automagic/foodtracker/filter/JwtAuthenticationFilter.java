@@ -27,34 +27,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        System.out.println("=== JWT Filter Debug ===");
-        System.out.println("Request URI: " + request.getRequestURI());
-        System.out.println("Cookies present: " + (request.getCookies() != null));
+        String token = extractTokenFromCookie(request, "access_token");
 
-        String token = null;
-
-        if (request.getCookies() != null) {
-            System.out.println("Number of cookies: " + request.getCookies().length);
-            for (Cookie cookie : request.getCookies()) {
-                System.out.println("Cookie: " + cookie.getName() + " = " + cookie.getValue().substring(0, Math.min(20, cookie.getValue().length())) + "...");
-                if ("access_token".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (token != null && jwtUtil.validateToken(token)) {
-            System.out.println("Token valid! UserId: " + jwtUtil.extractUserId(token));
+        if (token != null && jwtUtil.validateToken(token) && jwtUtil.isAccessToken(token)) {
             String userId = jwtUtil.extractUserId(token);
-
             AuthenticatedUser principal = new AuthenticatedUser(userId);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, null);
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(principal, null, null);
             SecurityContextHolder.getContext().setAuthentication(auth);
-        } else {
-            System.out.println("No valid token found");
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals(cookieName)) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

@@ -58,6 +58,10 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid or expired refresh token");
         }
 
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new InvalidCredentialsException("Invalid token type");
+        }
+
         String userId = jwtUtil.extractUserId(refreshToken);
         User user = userService.findById(userId);
 
@@ -68,6 +72,6 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtUtil.generateToken(user.getId());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
 
-        return new AuthResponse(accessToken, refreshToken, "Success");
+        return new AuthResponse(accessToken, refreshToken);
     }
 }

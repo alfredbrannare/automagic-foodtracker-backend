@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.dto.response.storage;
 
+import com.automagic.foodtracker.entity.Nutrition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,12 +18,12 @@ public class StorageResponse {
     private double totalWeight;
     private double consumedWeight;
     private double weightPerMeal;
+    private Nutrition nutritionPer100g;
     private double lowStockThreshold;
     private Instant createdAt;
     private Instant updatedAt;
 
-    private double remainingWeight;
     private double mealsLeft;
-    private double progressPercentage;
+    private double mealsLeftPercentage;
     private boolean lowStock;
 }

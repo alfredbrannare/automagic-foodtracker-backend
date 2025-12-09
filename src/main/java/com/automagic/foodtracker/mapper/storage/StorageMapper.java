@@ -58,9 +58,8 @@ public class StorageMapper {
                 .lowStockThreshold(storage.getLowStockThreshold())
                 .createdAt(storage.getCreatedAt())
 
-                .remainingWeight(storage.getRemainingWeight())
                 .mealsLeft(storage.getMealsLeft())
-                .progressPercentage(storage.getProgressPercentage())
+                .mealsLeftPercentage(storage.getProgressPercentage())
 
                 .lowStock(storage.isLowStock())
 

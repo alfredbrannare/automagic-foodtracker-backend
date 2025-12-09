@@ -62,7 +62,8 @@ public class Storage {
     }
 
     public double getProgressPercentage() {
-        return (consumedWeight / totalWeight) * 100;
+        double percent = (double) consumedWeight / totalWeight * 100;
+        return Math.round(percent * 10.0) / 10.0;
     }
 
 }
