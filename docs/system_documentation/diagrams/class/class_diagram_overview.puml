@@ -27,13 +27,17 @@ class Storage {
     -createdAt: Instant
     -updatedAt: Instant
     -lowStock: boolean
+    +getRemainingWeight(): double
+    +getMealsLeft(): double
+    +isLowStock(): boolean
+    +getProgressPercentage(): double
 }
 
-class Nutrition {
-    -protein: double
-    -carbs: double
-    -fat: double
-    -calories: double
+record Nutrition {
+    +protein: double
+    +carbs: double
+    +fat: double
+    +kcal: double
     +scale(weightInGrams: double): Nutrition
     -round(value: double): double
 }
@@ -46,13 +50,14 @@ class Meal {
     -weight: double
     -nutrition: Nutrition
     -consumedAt: Instant
+    +isFromStorage(): boolean
 }
 
-class Goals {
-    -targetProtein: double
-    -targetCarbs: double
-    -targetFat: double
-    -targetCalories: double
+record Goals {
+    +targetProtein: double
+    +targetCarbs: double
+    +targetFat: double
+    +targetCalories: double
 }
 
 ' Repositories
@@ -67,15 +72,16 @@ interface UserRepository {
 
 interface StorageRepository {
     +findByUserId(userId: String): Collection<Storage>
-    +findByIdAndUserId(id: String, userId: String)
+    +findByIdAndUserId(id: String, userId: String): Optional<Storage>
     +countByUserId(userId: String): long
 }
 
 interface MealRepository {
     +findByUserIdAndConsumedAtBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
     +findByStorageId(storageId: String): Collection<Meal>
-    +findByUserIdAndStorageIdIsNull(storageId: String): Collection<Meal>
+    +findByUserIdAndStorageIdIsNull(userId: String): Collection<Meal>
     +countByUserIdAndConsumedAtBetween(userId: String, from: Instant, to: Instant): long
+    +findByUserIdAndStorageIdAndConsumedAtAfter(userId: String, storageId: String, date: Instant): List<Meal>
 }
 
 ' Services
@@ -87,6 +93,7 @@ interface UserService {
     +emailExists(email: String): boolean
     +deleteUser(userId: String): void
     +findById(userId: String): User
+    +updateGoals(userId: String, goals: Goals): Goals
 }
 
 class UserServiceImpl {
@@ -98,39 +105,50 @@ class UserServiceImpl {
     +usernameExists(username: String): boolean
     +emailExists(email: String): boolean
     +deleteUser(userId: String): void
+    +findById(userId: String): User
+    +updateGoals(userId: String, goals: Goals): Goals
 }
 
 interface StorageService {
-    +registerStorage(userId: String, request: CreateStorageRequest): Storage
+    +registerStorage(userId: String, storage: Storage): Storage
     +getNutrition(storageId: String, userId: String): Nutrition
     +deleteStorage(userId: String, storageId: String): void
     +getStorage(userId: String): Collection<Storage>
-    +updateConsumedWeight(userId: String, storageId: String, consumedWeight: double): Storage
+    +getStorageById(userId: String, storageId: String): Storage
+    +updateStorage(userId: String, storage: Storage): Storage
+    +updateConsumedWeight(userId: String, storageId: String, weightChange: double): Storage
 }
 
 class StorageServiceImpl {
     -storageRepository: StorageRepository
+    -mealService: MealService
     +registerStorage(userId: String, storage: Storage): Storage
     +getNutrition(storageId: String, userId: String): Nutrition
     +deleteStorage(userId: String, storageId: String): void
-    +getStorage(userId: String)
-    +updateConsumedWeight(userId: String, storageId: String, consumedWeight: double): Storage
+    +getStorage(userId: String): Collection<Storage>
+    +getStorageById(userId: String, storageId: String): Storage
+    +updateStorage(userId: String, storage: Storage): Storage
+    +updateConsumedWeight(userId: String, storageId: String, weightChange: double): Storage
 }
 
 interface MealService {
-    registerMeal(userId: String, request: CreateMealRequest): Meal
-    getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
-    getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
-    deleteMeal(userId: String, mealId: String): void
+    +registerMeal(userId: String, meal: Meal): Meal
+    +getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
+    +getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
+    +deleteMeal(userId: String, mealId: String): void
+    +updateMeal(userId: String, meal: Meal): Meal
+    +findMealsByUserAndStorageSince(userId: String, storageId: String, from: Instant): List<Meal>
 }
 
 class MealServiceImpl {
     -mealRepository: MealRepository
     -storageService: StorageService
-    +registerMeal(userId: String, request: CreateMealRequest): Meal
+    +registerMeal(userId: String, meal: Meal): Meal
     +getMealsForUserBetween(userId: String, from: Instant, to: Instant): Collection<Meal>
     +getDailyNutrition(userId: String, from: Instant, to: Instant): Nutrition
     +deleteMeal(userId: String, mealId: String): void
+    +updateMeal(userId: String, meal: Meal): Meal
+    +findMealsByUserAndStorageSince(userId: String, storageId: String, from: Instant): List<Meal>
 }
 
 interface AuthService {
@@ -162,16 +180,25 @@ class RefreshRequest {
 }
 
 class RegisterRequest {
-    username: String
-    password: String
-    email: String
-    goals: Goals
+    -username: String
+    -password: String
+    -email: String
+    -goals: Goals
 }
 
 class CreateStorageRequest {
     -name: String
     -nutritionPer100g: Nutrition
     -totalWeight: double
+    -weightPerMeal: double
+    -lowStockThreshold: double
+    -createdAt: Instant
+}
+
+class UpdateStorageRequest {
+    -name: String
+    -totalWeight: double
+    -nutritionPer100g: Nutrition
     -weightPerMeal: double
     -lowStockThreshold: double
     -createdAt: Instant
@@ -184,6 +211,22 @@ class CreateMealRequest {
     -storageId: String
     -consumedAt: Instant
 }
+
+class UpdateMealRequest {
+    -name: String
+    -weight: double
+    -nutrition: Nutrition
+    -consumedAt: Instant
+    -storageId: String
+}
+
+class UpdateUserGoalsRequest {
+    -targetProtein: double
+    -targetCarbs: double
+    -targetFat: double
+    -targetCalories: double
+}
+
 
 ' DTOs - Response
 class AuthResponse {
@@ -202,9 +245,12 @@ class StorageResponse {
     -totalWeight: double
     -consumedWeight: double
     -weightPerMeal: double
+    -nutritionPer100g: Nutrition
     -lowStockThreshold: double
     -createdAt: Instant
     -updatedAt: Instant
+    -mealsLeft: double
+    -mealsLeftPercentage: double
     -lowStock: boolean
 }
 
@@ -215,6 +261,19 @@ class MealResponse {
     -consumedAt: Instant
     -nutrition: Nutrition
     -storageId: String
+}
+
+class UserGoalsResponse {
+    -targetProtein: double
+    -targetCarbs: double
+    -targetFat: double
+    -targetCalories: double
+}
+
+class UserResponse {
+    -username: String
+    -email: String
+    -goals: Goals
 }
 
 ' Controllers
@@ -236,6 +295,7 @@ class StorageController {
     +addStorage(user: AuthenticatedUser, request: CreateStorageRequest): ResponseEntity<StorageResponse>
     +deleteStorage(user: AuthenticatedUser, storageId: String): ResponseEntity<Void>
     +getStorage(user: AuthenticatedUser): ResponseEntity<List<StorageResponse>>
+    +updateStorage(user: AuthenticatedUser, storageId: String, request: UpdateStorageRequest): ResponseEntity<StorageResponse>
 }
 
 class MealsController {
@@ -243,18 +303,36 @@ class MealsController {
     +addMeal(user: AuthenticatedUser, request: CreateMealRequest): ResponseEntity<MealResponse>
     +deleteMeal(user: AuthenticatedUser, mealId: String): ResponseEntity<Void>
     +getMeals(user: AuthenticatedUser, date: LocalDate): ResponseEntity<List<MealResponse>>
+    +updateMeal(user: AuthenticatedUser, mealId: String, request: UpdateMealRequest): ResponseEntity<MealResponse>
     +getDailyNutritionSummary(user: AuthenticatedUser, date: LocalDate): ResponseEntity<Nutrition>
+}
+
+class UserController {
+    -userService: UserService
+    +getUser(user: AuthenticatedUser): ResponseEntity<UserResponse>
+    +updateUser(user: AuthenticatedUser, request: UpdateUserRequest): ResponseEntity<UserResponse>
+    +updateGoals(user: AuthenticatedUser, request: UpdateUserGoalsRequest): ResponseEntity<UserGoalsResponse>
+    +updatePassword(user: AuthenticatedUser, request: UpdateUserRequest): ResponseEntity<UserResponse>
+    +deleteUser(user: AuthenticatedUser): ResponseEntity<Void>
 }
 
 ' Mappers
 class MealMapper {
     +{static} toEntity(request: CreateMealRequest): Meal
+    +{static} toEntity(mealId: String, request: UpdateMealRequest): Meal
     +{static} toResponse(meal: Meal): MealResponse
 }
 
 class StorageMapper {
    +{static} toEntity(request: CreateStorageRequest): Storage
+   +{static} toEntity(storageId: String, request: UpdateStorageRequest): Storage
    +{static} toResponse(storage: Storage): StorageResponse
+}
+
+class UserMapper {
+    +{static} toResponse(user: User): UserResponse
+    +{static} toGoalsEntity(request: UpdateUserGoalsRequest): Goals
+    +{static} toGoalsResponse(goals: Goals): UserGoalsResponse
 }
 
 ' Config
@@ -299,6 +377,7 @@ MealsController --> MealService
 
 StorageController --> StorageMapper
 MealsController --> MealMapper
+UserController --> UserMapper
 
 AuthenticationController ..> RegisterRequest
 AuthenticationController ..> LoginRequest
@@ -308,10 +387,18 @@ AuthenticationController ..> AuthResponse
 AuthenticationController --> JwtProperties
 
 StorageController ..> CreateStorageRequest
+StorageController ..> UpdateStorageRequest
 StorageController ..> StorageResponse
 
 MealsController ..> CreateMealRequest
+MealsController ..> UpdateMealRequest
 MealsController ..> MealResponse
+
+UserController --> UserService
+UserController ..> UpdateUserRequest
+UserController ..> UpdateUserGoalsRequest
+UserController ..> UserGoalsResponse
+UserController ..> UserResponse
 
 ' Mapper Transformations
 MealMapper ..> CreateMealRequest : reads
@@ -322,6 +409,12 @@ StorageMapper ..> CreateStorageRequest : reads
 StorageMapper ..> Storage : creates
 StorageMapper ..> StorageResponse : creates
 
+UserMapper ..> User : reads
+UserMapper ..> UserResponse : creates
+UserMapper ..> UpdateUserGoalsRequest : reads
+UserMapper ..> Goals : creates
+UserMapper ..> UserGoalsResponse : creates
+
 ' Service Dependencies
 UserServiceImpl --> UserRepository
 StorageServiceImpl --> StorageRepository
@@ -329,6 +422,7 @@ MealServiceImpl --> MealRepository
 AuthServiceImpl --> JwtUtil
 UserServiceImpl --> PasswordEncoder
 JwtUtil --> JwtProperties
+StorageServiceImpl --> MealService
 
 ' Service to service calls
 MealServiceImpl --> StorageService : updates consumed weight
