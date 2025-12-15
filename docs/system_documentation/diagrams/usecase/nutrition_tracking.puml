@@ -1,0 +1,26 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "User" as User
+
+rectangle "Nutritional Tracking (Epic 4)" {
+    usecase "View Daily Nutrition" as UC_Daily
+    usecase "View Nutrition History" as UC_History
+    usecase "Compare vs Goals" as UC_Compare
+    usecase "Update Nutritional Goals" as UC_UpdateGoals
+
+    usecase "Calculate Daily Totals" as UC_CalcTotals
+    usecase "Calculate Progress %" as UC_CalcProgress
+}
+
+User --> UC_Daily
+User --> UC_History
+User --> UC_Compare
+User --> UC_UpdateGoals
+
+UC_Daily ..> UC_CalcTotals : <<include>>
+UC_Compare ..> UC_CalcTotals : <<include>>
+UC_Compare ..> UC_CalcProgress : <<include>>
+
+@enduml
