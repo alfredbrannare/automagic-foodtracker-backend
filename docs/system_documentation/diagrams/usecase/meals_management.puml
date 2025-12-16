@@ -27,16 +27,19 @@ rectangle "Meal & Nutrition System" {
 User --> UC_LogStore
 User --> UC_LogCustom
 User --> UC_History
+User --> UC_UpdMeal
+User --> UC_DelMeal
 User --> UC_Daily
 
-
 UC_LogStore ..> UC_UpdStoreQty : <<include>>
+UC_UpdMeal ..> UC_UpdStoreQty : <<include>>
+UC_DelMeal ..> UC_UpdStoreQty : <<include>>
+
+note right of UC_UpdStoreQty
+  Only occurs when
+  meal is from storage
+end note
 
 UC_Daily ..> UC_CompGoals : <<include>>
-
-UC_History <.. UC_UpdMeal : <<extend>>
-UC_History <.. UC_DelMeal : <<extend>>
-
-UC_DelMeal ..> UC_UpdStoreQty : <<include>>
 
 @enduml
