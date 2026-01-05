@@ -82,4 +82,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(existing).getGoals();
     }
 
+    @Override
+    public Goals getGoals(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> UserNotFoundException.byId(userId)).getGoals();
+    }
+
 }

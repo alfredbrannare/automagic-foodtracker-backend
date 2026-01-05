@@ -12,4 +12,5 @@ public interface UserService {
     void deleteUser(String userId);
     User findById(String userId);
     Goals updateGoals(String userId, Goals goals);
+    Goals getGoals(String userId);
 }

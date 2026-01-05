@@ -84,7 +84,7 @@ public class MealsController {
     @GetMapping("/summary")
     public ResponseEntity<Nutrition> getDailyNutritionSummary(
             @AuthenticationPrincipal AuthenticatedUser user,
-            @RequestParam(value = "default", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
         LocalDate targetDate = (date != null) ? date : LocalDate.now();
         Instant from = targetDate.atStartOfDay(ZoneOffset.UTC).toInstant();

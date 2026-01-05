@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import com.automagic.foodtracker.dto.request.user.UpdateUserRequest;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/me")
+    @GetMapping()
     public ResponseEntity<UserResponse> getUser(
             @AuthenticationPrincipal AuthenticatedUser user
     ) {
@@ -28,7 +28,7 @@ public class UserController {
         return null;
     }
 
-    @PutMapping("/me")
+    @PutMapping()
     public ResponseEntity<UserResponse> updateUser(
             @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody UpdateUserRequest request
@@ -38,7 +38,17 @@ public class UserController {
         return null;
     }
 
-    @PutMapping("/me/goals")
+    @GetMapping("/goals")
+    public ResponseEntity<UserGoalsResponse> getGoals(
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        Goals goals = userService.getGoals(user.getUserId());
+        UserGoalsResponse response = UserMapper.toGoalsResponse(goals);
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PutMapping("/goals")
     public ResponseEntity<UserGoalsResponse> updateGoals(
             @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody UpdateUserGoalsRequest request
@@ -51,7 +61,7 @@ public class UserController {
         return ResponseEntity.ok().body(response);
     }
 
-    @PutMapping("/me/password")
+    @PutMapping("/password")
     public ResponseEntity<UserResponse> updatePassword(
             @AuthenticationPrincipal AuthenticatedUser user,
             @Valid @RequestBody UpdateUserRequest request
@@ -61,7 +71,7 @@ public class UserController {
         return null;
     }
 
-    @DeleteMapping("/me")
+    @DeleteMapping()
     public ResponseEntity<Void> deleteUser(
             @AuthenticationPrincipal AuthenticatedUser user
     ) {

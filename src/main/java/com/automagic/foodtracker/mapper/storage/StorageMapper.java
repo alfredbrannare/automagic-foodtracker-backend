@@ -55,6 +55,7 @@ public class StorageMapper {
                 .totalWeight(storage.getTotalWeight())
                 .consumedWeight(storage.getConsumedWeight())
                 .weightPerMeal(storage.getWeightPerMeal())
+                .nutritionPer100g(storage.getNutritionPer100g())
                 .lowStockThreshold(storage.getLowStockThreshold())
                 .createdAt(storage.getCreatedAt())
 
