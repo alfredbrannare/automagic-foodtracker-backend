@@ -117,7 +117,7 @@ public class StorageServiceImpl implements StorageService {
         double newConsumedWeight = existing.get().getConsumedWeight() + weightChange;
 
         if (newConsumedWeight < 0) {
-            throw new BadStorageRequestException("Consumed weight cannot be negative");
+            newConsumedWeight = 0;
         }
 
         if (weightChange == 0) {

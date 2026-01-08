@@ -107,23 +107,25 @@ public class MealServiceImpl implements MealService {
         }
         else {
             existing.setName(updates.getName());
-            existing.setNutrition(updates.getNutrition().scale(existingWeight));
+            existing.setNutrition(updates.getNutrition());
         }
 
-        if (existingStorageId == null && newStorageId != null) {
-            storageService.updateConsumedWeight(userId, newStorageId, newWeight);
-        }
-        else if (existingStorageId != null && newStorageId == null) {
-            storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
-        }
-        else if (existingStorageId != null && newStorageId != null) {
-            if (!existingStorageId.equals(newStorageId)) {
-                storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
+        if (existingStorageId != null || newStorageId != null) {
+            if (existingStorageId == null && newStorageId != null) {
                 storageService.updateConsumedWeight(userId, newStorageId, newWeight);
             }
-            else if (newWeight != existingWeight) {
-                double weightDifference = newWeight - existingWeight;
-                storageService.updateConsumedWeight(userId, newStorageId, weightDifference);
+            else if (existingStorageId != null && newStorageId == null) {
+                storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
+            }
+            else if (existingStorageId != null && newStorageId != null) {
+                if (!existingStorageId.equals(newStorageId)) {
+                    storageService.updateConsumedWeight(userId, existingStorageId, -existingWeight);
+                    storageService.updateConsumedWeight(userId, newStorageId, newWeight);
+                }
+                else if (newWeight != existingWeight) {
+                    double weightDifference = newWeight - existingWeight;
+                    storageService.updateConsumedWeight(userId, newStorageId, weightDifference);
+                }
             }
         }
 
