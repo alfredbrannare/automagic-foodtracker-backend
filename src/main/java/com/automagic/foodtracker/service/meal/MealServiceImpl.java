@@ -137,4 +137,14 @@ public class MealServiceImpl implements MealService {
         return mealRepository.findByUserIdAndStorageIdAndConsumedAtAfter(userId, storageId, from);
     }
 
+    @Override
+    public List<Meal> findMealsByUserAndStorage(String userId, String storageId) {
+        return mealRepository.findByUserIdAndStorageId(userId, storageId);
+    }
+
+    @Override
+    public void saveMeal(Meal meal) {
+        mealRepository.save(meal);
+    }
+
 }

@@ -15,4 +15,6 @@ public interface MealService {
     void deleteMeal(String userId, String mealId);
     Meal updateMeal(String userId, Meal meal);
     List<Meal> findMealsByUserAndStorageSince(String userId, String storageId, Instant from);
+    List<Meal> findMealsByUserAndStorage(String userId, String storageId);
+    void saveMeal(Meal meal);
 }

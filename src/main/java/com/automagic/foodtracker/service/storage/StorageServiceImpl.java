@@ -55,6 +55,13 @@ public class StorageServiceImpl implements StorageService {
             throw new BadStorageRequestException("You are not allowed to delete this storage");
         }
 
+        Instant twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS);
+        List<Meal> linkedMeals = mealService.findMealsByUserAndStorageSince(userId, storageId, twoWeeksAgo);
+        for (Meal meal : linkedMeals) {
+            meal.setStorageId(null);
+            mealService.saveMeal(meal);
+        }
+
         storageRepository.deleteById(storageId);
     }
 
@@ -82,8 +89,7 @@ public class StorageServiceImpl implements StorageService {
 
         Storage saved = storageRepository.save(existing);
 
-        Instant twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS);
-        List<Meal> recentMeals = mealService.findMealsByUserAndStorageSince(userId, updates.getId(), twoWeeksAgo);
+        List<Meal> recentMeals = mealService.findMealsByUserAndStorage(userId, updates.getId());
 
         for (Meal meal : recentMeals) {
             mealService.updateMeal(userId, meal);
@@ -110,15 +116,16 @@ public class StorageServiceImpl implements StorageService {
 
         double newConsumedWeight = existing.get().getConsumedWeight() + weightChange;
 
-        if (newConsumedWeight > existing.get().getTotalWeight()) {
-            throw new BadStorageRequestException("Consumed weight cannot be greater than total weight");
-        }
-
         if (newConsumedWeight < 0) {
             throw new BadStorageRequestException("Consumed weight cannot be negative");
         }
 
         if (weightChange == 0) {
+            return existing.get();
+        }
+
+        if (newConsumedWeight >= existing.get().getTotalWeight()) {
+            deleteStorage(userId, storageId);
             return existing.get();
         }
 

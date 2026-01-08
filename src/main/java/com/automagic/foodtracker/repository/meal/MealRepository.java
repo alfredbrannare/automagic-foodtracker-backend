@@ -15,4 +15,5 @@ public interface MealRepository extends JpaRepository<Meal, String> {
     Collection<Meal> findByUserIdAndStorageIdIsNull(String userId);
     long countByUserIdAndConsumedAtBetween(String userId, Instant from, Instant to);
     List<Meal> findByUserIdAndStorageIdAndConsumedAtAfter(String userId, String storageId, Instant date);
+    List<Meal> findByUserIdAndStorageId(String userId, String storageId);
 }
