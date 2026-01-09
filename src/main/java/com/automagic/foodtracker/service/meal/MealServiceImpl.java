@@ -107,7 +107,7 @@ public class MealServiceImpl implements MealService {
         }
         else {
             existing.setName(updates.getName());
-            existing.setNutrition(updates.getNutrition());
+            existing.setNutrition(updates.getNutrition().scale(newWeight));
         }
 
         if (existingStorageId != null || newStorageId != null) {
