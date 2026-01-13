@@ -75,7 +75,8 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(
             @AuthenticationPrincipal AuthenticatedUser user
     ) {
-        return null;
+        userService.deleteUser(user.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
 }
