@@ -2,6 +2,7 @@ package com.automagic.foodtracker.exception.controller;
 
 import com.automagic.foodtracker.exception.auth.InvalidCredentialsException;
 import com.automagic.foodtracker.exception.auth.UserAlreadyExistsException;
+import com.automagic.foodtracker.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -58,6 +59,16 @@ public class ControllerAdvice {
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", Instant.now().toString());
+        body.put("error", "User not found");
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
 }

@@ -29,6 +29,11 @@ public class AuthenticationController {
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
     private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
+    @GetMapping("/csrf")
+    public ResponseEntity<Void> getCsrfToken() {
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/register")
     public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse authResponse = authService.register(request);
