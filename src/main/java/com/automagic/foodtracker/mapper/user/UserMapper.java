@@ -22,7 +22,15 @@ public class UserMapper {
     }
 
     public static UserGoalsResponse toGoalsResponse(Goals goals) {
-        System.out.println("toGoalsResponse: " + goals.targetProtein() + ", " + goals.targetCarbs() + ", " + goals.targetFat() + ", " + goals.targetCalories());
+        if (goals == null) {
+            return UserGoalsResponse.builder()
+                    .targetProtein(0.0)
+                    .targetCarbs(0.0)
+                    .targetFat(0.0)
+                    .targetCalories(0.0)
+                    .build();
+        }
+
         return UserGoalsResponse.builder()
                 .targetProtein(goals.targetProtein())
                 .targetCarbs(goals.targetCarbs())

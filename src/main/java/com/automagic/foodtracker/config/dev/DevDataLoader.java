@@ -1,9 +1,6 @@
 package com.automagic.foodtracker.config.dev;
 
-import com.automagic.foodtracker.entity.Meal;
-import com.automagic.foodtracker.entity.Nutrition;
-import com.automagic.foodtracker.entity.Storage;
-import com.automagic.foodtracker.entity.User;
+import com.automagic.foodtracker.entity.*;
 import com.automagic.foodtracker.repository.meal.MealRepository;
 import com.automagic.foodtracker.repository.storage.StorageRepository;
 import com.automagic.foodtracker.repository.user.UserRepository;
@@ -38,12 +35,14 @@ public class DevDataLoader {
             user.setUsername("user");
             user.setEmail("user@user.com");
             user.setPassword(passwordEncoder.encode("123"));
+            user.setGoals(new Goals(1.1,1.1,1.1,1.1));
             userRepository.save(user);
 
             User admin = new User();
             admin.setUsername("admin");
             admin.setEmail("admin@admin.com");
             admin.setPassword(passwordEncoder.encode("123"));
+            admin.setGoals(new Goals(1.1,1.1,1.1,1.1));
             admin.setRole("ADMIN");
             userRepository.save(admin);
 
@@ -60,14 +59,6 @@ public class DevDataLoader {
             storageRepository.save(storage);
 
             //Meal
-            Meal meal = new Meal();
-            meal.setUserId(user.getId());
-            meal.setName("Chicken");
-            meal.setWeight(150.0);
-            meal.setStorageId(storage.getId());
-            meal.setConsumedAt(Instant.now());
-            mealRepository.save(meal);
-
             Meal meal2 = new Meal();
             meal2.setName("Pizza");
             meal2.setWeight(150.0);
