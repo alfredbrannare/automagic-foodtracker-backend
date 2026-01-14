@@ -65,8 +65,8 @@ public class StorageController {
     ) {
 
         Storage storage = StorageMapper.toEntity(storageId, request);
-        storageService.updateStorage(user.getUserId(), storage);
-        StorageResponse response = StorageMapper.toResponse(storage);
+        Storage updatedStorage = storageService.updateStorage(user.getUserId(), storage);
+        StorageResponse response = StorageMapper.toResponse(updatedStorage);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
