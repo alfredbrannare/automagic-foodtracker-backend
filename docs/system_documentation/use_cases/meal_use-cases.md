@@ -91,7 +91,7 @@
 - Meals have been logged.
 
 **Main Flow:**
-1. Frontend sends a `GET /api/meals/nutrition?date=...` request.
+1. Frontend sends a `GET /api/meals/summary?date=...` request.
 2. Backend validates JWT and extracts user ID.
 3. Backend converts date to from and to Instant.
 4. Backend aggregates nutrition data for the date range.

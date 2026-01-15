@@ -1,7 +1,7 @@
 @startuml
 start
 
-:Receive DELETE /api/meal/{mealId} request;
+:Receive DELETE /api/meals/{mealId} request;
 :Validate JWT token;
 
 :Find meal item;

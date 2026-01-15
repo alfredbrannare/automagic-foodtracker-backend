@@ -14,12 +14,11 @@ class User {
     -createdAt: Instant
     -goals: Goals
     -role: String
-    -meals: List<Meal>
-    -storages: List<Storage>
 }
 
 class Meal {
     -id: String
+    -user: User
     -userId: String
     -storageId: String
     -name: String
@@ -31,6 +30,7 @@ class Meal {
 
 class Storage {
     -id: String
+    -user: User
     -userId: String
     -name: String
     -totalWeight: double
@@ -103,6 +103,7 @@ interface UserService {
     +deleteUser(userId: String): void
     +findById(userId: String): User
     +updateGoals(userId: String, goals: Goals): Goals
+    +getGoals(userId: String): Goals
 }
 
 class UserServiceImpl {
@@ -117,6 +118,8 @@ interface MealService {
     +deleteMeal(userId: String, mealId: String): void
     +updateMeal(userId: String, meal: Meal): Meal
     +findMealsByUserAndStorageSince(userId: String, storageId: String, from: Instant): List<Meal>
+    +findMealsByUserAndStorage(userId: String, storageId: String): List<Meal>
+    +saveMeal(meal: Meal): void
 }
 
 class MealServiceImpl {
@@ -159,6 +162,8 @@ class AuthenticationController {
     -authService: AuthService
     -jwtProperties: JwtProperties
     -cookiesSecure: boolean
+    +getCsrfToken(): ResponseEntity<Void>
+    +checkAuth(): ResponseEntity<MessageResponse>
     +register(request: RegisterRequest): ResponseEntity<MessageResponse>
     +login(request: LoginRequest): ResponseEntity<MessageResponse>
     +deleteUser(user: AuthenticatedUser): ResponseEntity<Void>
@@ -172,6 +177,7 @@ class UserController {
     -userService: UserService
     +getUser(user: AuthenticatedUser): ResponseEntity<UserResponse>
     +updateUser(user: AuthenticatedUser, request: UpdateUserRequest): ResponseEntity<UserResponse>
+    +getGoals(user: AuthenticatedUser): ResponseEntity<UserGoalsResponse>
     +updateGoals(user: AuthenticatedUser, request: UpdateUserGoalsRequest): ResponseEntity<UserGoalsResponse>
     +updatePassword(user: AuthenticatedUser, request: UpdateUserRequest): ResponseEntity<UserResponse>
     +deleteUser(user: AuthenticatedUser): ResponseEntity<Void>
