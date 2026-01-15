@@ -12,4 +12,5 @@ public interface StorageRepository extends JpaRepository<Storage, String> {
     Collection<Storage> findByUserId(String userId);
     Optional<Storage> findByIdAndUserId(String id, String userId);
     long countByUserId(String userId);
+    void deleteAllByUserId(String userId);
 }
