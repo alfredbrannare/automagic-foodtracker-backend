@@ -23,10 +23,10 @@ public class AuthenticationController {
     private final AuthService authService;
     private final JwtProperties jwtProperties;
 
-    @Value("${app.security.cookies-secure:true}")
+    @Value("${app.security.cookies-secure}")
     private boolean cookiesSecure;
 
-    @Value("${app.security.cookies.same-site:Lax}")
+    @Value("${app.security.cookies.same-site}")
     private String cookieSameSite;
 
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
@@ -61,7 +61,7 @@ public class AuthenticationController {
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(new MessageResponse("Login successfull"));
+                .body(new MessageResponse("Login successfully"));
     }
 
     @DeleteMapping
@@ -93,7 +93,7 @@ public class AuthenticationController {
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(new MessageResponse("Logout successfull"));
+                .body(new MessageResponse("Logout successfully"));
     }
 
     @PostMapping("/refresh")
@@ -104,7 +104,7 @@ public class AuthenticationController {
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(new MessageResponse("Refresh successfull"));
+                .body(new MessageResponse("Refresh successfully"));
     }
 
     // Helper Methods
