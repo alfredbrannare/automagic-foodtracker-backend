@@ -54,6 +54,3 @@ logs/
 *.db
 *.sqlite
 *.h2.db
-
-### Spring ###
-src/main/resources/application.properties

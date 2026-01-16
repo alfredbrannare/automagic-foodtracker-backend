@@ -14,7 +14,7 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION:-3600000}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-86400000}
       - DEMO_ENABLED=${DEMO_ENABLED:-false}
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      - APP_SECURITY_CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     depends_on:
       db:
         condition: service_healthy
