@@ -23,10 +23,10 @@ public class AuthenticationController {
     private final AuthService authService;
     private final JwtProperties jwtProperties;
 
-    @Value("${app.security.cookies-secure}")
+    @Value("${app.security.cookies-secure:true}")
     private boolean cookiesSecure;
 
-    @Value("${app.security.cookie-same-site}")
+    @Value("${app.security.cookies.same-site:Lax}")
     private String cookieSameSite;
 
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
