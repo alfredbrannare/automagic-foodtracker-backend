@@ -26,6 +26,9 @@ public class AuthenticationController {
     @Value("${app.security.cookies-secure}")
     private boolean cookiesSecure;
 
+    @Value("${app.security.cookie-same-site}")
+    private String cookieSameSite;
+
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
     private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
@@ -126,7 +129,7 @@ public class AuthenticationController {
                 .httpOnly(true)
                 .secure(cookiesSecure)
                 .path("/")
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .maxAge(maxAgeSeconds)
                 .build();
     }
