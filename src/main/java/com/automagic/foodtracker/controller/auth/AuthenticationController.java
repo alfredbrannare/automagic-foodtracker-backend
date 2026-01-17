@@ -131,6 +131,7 @@ public class AuthenticationController {
                 .path("/")
                 .sameSite(cookieSameSite)
                 .maxAge(maxAgeSeconds)
+                .partitioned(true)
                 .build();
     }
 
