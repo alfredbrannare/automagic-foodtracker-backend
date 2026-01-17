@@ -3,13 +3,17 @@ package com.automagic.foodtracker.dto.request.storage;
 import com.automagic.foodtracker.entity.Nutrition;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateStorageRequest {
     @NotNull
     private String name;

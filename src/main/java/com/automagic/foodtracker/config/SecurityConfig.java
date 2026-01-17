@@ -1,6 +1,7 @@
 package com.automagic.foodtracker.config;
 
 import com.automagic.foodtracker.filter.JwtAuthenticationFilter;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,11 @@ public class SecurityConfig {
 
     @Value("${app.security.csrf-enabled}")
     private boolean csrfEnabled;
+
+    @PostConstruct
+    public void logConfig() {
+        System.out.println("CSRF ENABLED: " + csrfEnabled);
+    }
 
     @Value("${app.security.cors.allowed-origins:http://localhost:5173}")
     private String allowedOrigins;
@@ -81,6 +87,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/api/auth/csrf").permitAll()
                         .requestMatchers("/api/auth/**").authenticated()
+                        .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
