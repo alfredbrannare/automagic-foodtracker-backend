@@ -40,10 +40,6 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest request) {
         User user = userService.findByUsername(request.getUsername());
 
-        if (!userService.verifyPassword(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid password");
-        }
-
         return generateAuthResponse(user);
     }
 

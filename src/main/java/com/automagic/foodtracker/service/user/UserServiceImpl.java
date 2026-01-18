@@ -16,14 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User createUser(String username, String email, String plainPassword) {
     User user = new User();
     user.setUsername(username);
     user.setEmail(email);
-    user.setPassword(passwordEncoder.encode(plainPassword));
     user.setGoals(new Goals(150, 250, 60, 2000));
     user.setRole("USER");
 
@@ -34,11 +32,6 @@ public class UserServiceImpl implements UserService {
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> UserNotFoundException.byUsername(username));
-    }
-
-    @Override
-    public boolean verifyPassword(String plainPassword, String hashedPassword) {
-        return passwordEncoder.matches(plainPassword, hashedPassword);
     }
 
     @Override
