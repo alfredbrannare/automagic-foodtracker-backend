@@ -18,7 +18,6 @@ public class DevDataLoader {
 
     @Bean
     CommandLineRunner loadTestData(UserRepository userRepository,
-                                   PasswordEncoder passwordEncoder,
                                    MealRepository mealRepository,
                                    StorageRepository storageRepository) {
 

@@ -22,7 +22,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String providerId = oAuth2User.getAttribute("sub");
+        String providerId = null;
+        if (oAuth2User.getAttribute("sub") != null) {
+            providerId = oAuth2User.getAttribute("sub");
+        } else if (oAuth2User.getAttribute("id") != null) {
+            providerId = oAuth2User.getAttribute("id");
+        }
+
         String username = oAuth2User.getAttribute("name");
         String email = oAuth2User.getAttribute("email");
         String provider = userRequest.getClientRegistration().getRegistrationId();
