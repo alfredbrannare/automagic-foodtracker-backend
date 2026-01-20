@@ -38,7 +38,11 @@ public class AuthenticationController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<MessageResponse> checkAuth() {
+    public ResponseEntity<MessageResponse> checkAuth(@AuthenticationPrincipal AuthenticatedUser user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
