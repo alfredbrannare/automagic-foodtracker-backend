@@ -1,5 +1,6 @@
 package com.automagic.foodtracker.service.auth;
 
+import com.automagic.foodtracker.entity.Goals;
 import com.automagic.foodtracker.entity.User;
 import com.automagic.foodtracker.repository.user.UserRepository;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -32,6 +33,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String username = oAuth2User.getAttribute("name");
         String email = oAuth2User.getAttribute("email");
         String provider = userRequest.getClientRegistration().getRegistrationId();
+        Goals goals = new Goals(150, 250, 60, 2000);
 
         User existing = userRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
 
@@ -41,6 +43,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             newUser.setProviderId(providerId);
             newUser.setUsername(username);
             newUser.setEmail(email);
+            newUser.setGoals(goals);
 
             userRepository.save(newUser);
         }

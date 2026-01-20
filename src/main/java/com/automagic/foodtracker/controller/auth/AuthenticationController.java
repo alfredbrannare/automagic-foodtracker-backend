@@ -1,14 +1,11 @@
 package com.automagic.foodtracker.controller.auth;
 
 import com.automagic.foodtracker.config.JwtProperties;
-import com.automagic.foodtracker.dto.request.auth.LoginRequest;
-import com.automagic.foodtracker.dto.request.auth.RefreshRequest;
-import com.automagic.foodtracker.dto.request.auth.RegisterRequest;
 import com.automagic.foodtracker.dto.response.auth.AuthResponse;
 import com.automagic.foodtracker.dto.response.auth.MessageResponse;
 import com.automagic.foodtracker.security.AuthenticatedUser;
 import com.automagic.foodtracker.service.auth.AuthService;
-import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -30,7 +27,6 @@ public class AuthenticationController {
     private String cookieSameSite;
 
     private static final String ACCESS_TOKEN_COOKIE = "access_token";
-    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
     @GetMapping("/csrf")
     public ResponseEntity<Void> getCsrfToken() {
@@ -38,31 +34,14 @@ public class AuthenticationController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<MessageResponse> checkAuth() {
+    public ResponseEntity<MessageResponse> checkAuth(@AuthenticationPrincipal AuthenticatedUser user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<MessageResponse> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse authResponse = authService.register(request);
-
-        HttpHeaders headers = buildCookieHeaders(authResponse.getAccessToken(), authResponse.getRefreshToken());
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .headers(headers)
-                .body(new MessageResponse("User registered successfully"));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<MessageResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = authService.login(request);
-
-        HttpHeaders headers = buildCookieHeaders(response.getAccessToken(), response.getRefreshToken());
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(new MessageResponse("Login successfully"));
-    }
 
     @DeleteMapping
     public ResponseEntity<Void> deleteUser(@AuthenticationPrincipal AuthenticatedUser user) {
@@ -73,38 +52,21 @@ public class AuthenticationController {
         headers.add(HttpHeaders.SET_COOKIE,
                 buildCookie(ACCESS_TOKEN_COOKIE, "", 0).toString());
 
-        headers.add(HttpHeaders.SET_COOKIE,
-                buildCookie(REFRESH_TOKEN_COOKIE, "", 0).toString());
-
         return ResponseEntity.noContent()
                 .headers(headers)
                 .build();
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<MessageResponse> logout() {
+    public ResponseEntity<?> logout(HttpServletResponse response) {
         HttpHeaders headers = new HttpHeaders();
 
         headers.add(HttpHeaders.SET_COOKIE,
                 buildCookie(ACCESS_TOKEN_COOKIE, "", 0).toString());
 
-        headers.add(HttpHeaders.SET_COOKIE,
-                buildCookie(REFRESH_TOKEN_COOKIE, "", 0).toString());
-
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(new MessageResponse("Logout successfully"));
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<MessageResponse> refreshToken(@CookieValue(name = REFRESH_TOKEN_COOKIE) String refreshToken) {
-        AuthResponse response = authService.refreshToken(refreshToken);
-
-        HttpHeaders headers = buildCookieHeaders(response.getAccessToken(), response.getRefreshToken());
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(new MessageResponse("Refresh successfully"));
+                .build();
     }
 
     // Helper Methods
@@ -115,11 +77,6 @@ public class AuthenticationController {
                 buildCookie(ACCESS_TOKEN_COOKIE,
                         accessToken,
                         jwtProperties.getExpirationInSeconds()).toString());
-
-        headers.add(HttpHeaders.SET_COOKIE,
-                buildCookie(REFRESH_TOKEN_COOKIE,
-                        refreshToken,
-                        jwtProperties.getRefreshExpirationInSeconds()).toString());
 
         return headers;
     }

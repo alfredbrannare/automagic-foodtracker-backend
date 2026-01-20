@@ -1,14 +1,10 @@
 package com.automagic.foodtracker.service.user;
 
-import com.automagic.foodtracker.dto.request.auth.RegisterRequest;
 import com.automagic.foodtracker.entity.Goals;
-import com.automagic.foodtracker.entity.Nutrition;
 import com.automagic.foodtracker.entity.User;
 import com.automagic.foodtracker.exception.user.UserNotFoundException;
 import com.automagic.foodtracker.repository.user.UserRepository;
-import com.automagic.foodtracker.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

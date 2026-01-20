@@ -1,6 +1,8 @@
 package com.automagic.foodtracker.security;
 
 import com.automagic.foodtracker.config.JwtProperties;
+import com.automagic.foodtracker.entity.User;
+import com.automagic.foodtracker.repository.user.UserRepository;
 import com.automagic.foodtracker.util.JwtUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final JwtUtil jwtUtil;
     private final JwtProperties jwtProperties;
+    private final UserRepository userRepository;
 
     @Value("${app.oauth2.target-url}")
     private String redirectUri;
@@ -36,16 +39,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String sub = null;
-        if (oAuth2User.getAttribute("sub") != null) {
-            sub = oAuth2User.getAttribute("sub");
-        } else if (oAuth2User.getAttribute("id") != null) {
-            sub = oAuth2User.getAttribute("id");
-        } else {
-            sub = oAuth2User.getName();
-        }
+        String email = oAuth2User.getAttribute("email");
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        String token = jwtUtil.generateToken(sub);
+        String token = jwtUtil.generateToken(user.getId());
 
         ResponseCookie cookie = ResponseCookie.from("access_token", token)
                 .httpOnly(true)
