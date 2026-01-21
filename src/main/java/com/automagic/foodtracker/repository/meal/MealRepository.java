@@ -17,4 +17,5 @@ public interface MealRepository extends JpaRepository<Meal, String> {
     List<Meal> findByUserIdAndStorageIdAndConsumedAtAfter(String userId, String storageId, Instant date);
     List<Meal> findByUserIdAndStorageId(String userId, String storageId);
     void deleteAllByUserId(String userId);
+    int deleteByConsumedAtBefore(Instant date);
 }
