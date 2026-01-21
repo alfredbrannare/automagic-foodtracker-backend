@@ -109,7 +109,7 @@ public class DemoAccountService implements CommandLineRunner {
         meal1.setWeight(150);
         meal1.setNutrition(new Nutrition(46.5, 0.0, 5.4, 247.5));
         meal1.setStorageId(chickenStorage.getId());
-        meal1.setConsumedAt(now.minus(4, ChronoUnit.HOURS));
+        meal1.setConsumedAt(now.plus(9, ChronoUnit.HOURS));
         mealRepository.save(meal1);
 
         Meal meal2 = new Meal();
@@ -118,7 +118,7 @@ public class DemoAccountService implements CommandLineRunner {
         meal2.setWeight(200);
         meal2.setNutrition(new Nutrition(5.2, 46.0, 1.8, 222.0));
         meal2.setStorageId(riceStorage.getId());
-        meal2.setConsumedAt(now.minus(4, ChronoUnit.HOURS));
+        meal2.setConsumedAt(now.plus(9, ChronoUnit.HOURS));
         mealRepository.save(meal2);
 
         log.info("Seeded demo data: 2 storage items, 2 meals");
