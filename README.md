@@ -1,6 +1,6 @@
-# Automagic Food Tracker — Backend
+# Automagic Foodtracker — Backend
 
-Spring Boot REST API for the Automagic Food Tracker application.
+Spring Boot REST API for the Automagic Foodtracker application.
 
 ## Tech Stack
 
@@ -19,15 +19,7 @@ git clone https://github.com/alfredbrannare/automagic-foodtracker-backend.git
 cd automagic-foodtracker-backend
 ```
 
-### 2. Create environment file
-
-Create a `.env` file in the project root:
-
-```env
-JWT_SECRET=your-very-long-secret-key-at-least-256-bits-make-it-random
-```
-
-### 3. Start the application
+### 2. Start the application
 
 ```bash
 docker compose up --build
