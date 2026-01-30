@@ -18,7 +18,6 @@ public class DevDataLoader {
 
     @Bean
     CommandLineRunner loadTestData(UserRepository userRepository,
-                                   PasswordEncoder passwordEncoder,
                                    MealRepository mealRepository,
                                    StorageRepository storageRepository) {
 
@@ -34,14 +33,12 @@ public class DevDataLoader {
             User user = new User();
             user.setUsername("user");
             user.setEmail("user@user.com");
-            user.setPassword(passwordEncoder.encode("123"));
             user.setGoals(new Goals(1.1,1.1,1.1,1.1));
             userRepository.save(user);
 
             User admin = new User();
             admin.setUsername("admin");
             admin.setEmail("admin@admin.com");
-            admin.setPassword(passwordEncoder.encode("123"));
             admin.setGoals(new Goals(1.1,1.1,1.1,1.1));
             admin.setRole("ADMIN");
             userRepository.save(admin);

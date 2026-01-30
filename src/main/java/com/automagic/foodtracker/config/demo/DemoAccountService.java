@@ -24,7 +24,6 @@ public class DemoAccountService implements CommandLineRunner {
     private final UserRepository userRepository;
     private final MealRepository mealRepository;
     private final StorageRepository storageRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -62,7 +61,6 @@ public class DemoAccountService implements CommandLineRunner {
             User demoUser = new User();
             demoUser.setUsername(config.getUsername());
             demoUser.setEmail(config.getEmail());
-            demoUser.setPassword(passwordEncoder.encode(config.getPassword()));
             demoUser.setGoals(new Goals(150.0, 250.0, 60.0, 2000.0));
             demoUser.setRole("ROLE_USER");
 
